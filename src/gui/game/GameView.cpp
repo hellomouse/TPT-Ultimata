@@ -35,9 +35,10 @@
 #include "simulation/SaveRenderer.h"
 #include "simulation/SimulationData.h"
 #include "simulation/ElementDefs.h"
+#include "simulation/quantum/def.h"
 #include "ElementClasses.h"
 
-#include <cstring>
+#include <ctime>
 
 #ifdef GetUserName
 # undef GetUserName // dammit windows
@@ -2356,6 +2357,10 @@ void GameView::OnDraw()
 					else
 						sampleInfo << " (unknown mode)";
 				}
+				else if (type == PT_QLOG) {
+					sampleInfo << c->ElementResolve(type, ctype);
+					sampleInfo << " (" << QGATE::get_name(ctype) << ")";
+				}
 				else
 				{
 					sampleInfo << c->ElementResolve(type, ctype);
@@ -2405,18 +2410,62 @@ void GameView::OnDraw()
 			sampleInfo << c->WallName(sample.WallType);
 			sampleInfo << ", Pressure: " << sample.AirPressure;
 		}
-		else if (sample.isMouseInSim)
-		{
+		else if (sample.isMouseInSim) {
 			sampleInfo << "Empty, Pressure: " << sample.AirPressure;
 		}
-		else
-		{
+		else {
 			sampleInfo << "Empty";
 		}
 
 		int textWidth = Graphics::textwidth(sampleInfo.Build());
 		g->fillrect(XRES-20-textWidth, 12, textWidth+8, 15, 0, 0, 0, alpha*0.5f);
 		g->drawtext(XRES-16-textWidth, 16, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
+
+		// Second line where it displays the life and stuff
+		StringBuilder sampleInfo2;
+		sampleInfo2 << Format::Precision(2);
+		if (sample.particle.type) {
+			if (showDebug) {
+				sampleInfo2 << "Life: " << Format::Fixed(sample.particle.life);
+				sampleInfo2 << ", Tmp: " << Format::Fixed(sample.particle.tmp);
+				sampleInfo2 << ", Tmp2: " << Format::Fixed(sample.particle.tmp2);
+				sampleInfo2 << ", DColor: " << Format::Fixed(sample.particle.dcolour);
+			}
+		}
+		else {
+			sampleInfo2 << "Life: 0";
+			sampleInfo2 << ", Tmp: 0";
+			sampleInfo2 << ", Tmp2: 0";
+			sampleInfo2 << ", DColor: 0";
+		}
+		int textWidth3 = Graphics::textwidth(sampleInfo2.Build());
+		g->fillrect(XRES - 20 - textWidth3, 27, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
+		g->drawtext(XRES - 16 - textWidth3, 30, sampleInfo2.Build(), 255, 255, 255, alpha*0.75f);
+
+		// Third line where it displays the pvag and stuff
+		StringBuilder sampleInfo3;
+		sampleInfo3 << Format::Precision(2);
+		if (sample.particle.type) {
+			if (showDebug) {
+				sampleInfo3 << "Flags: " << Format::Fixed(sample.particle.flags);
+				sampleInfo3 << ", Pavg0: " << Format::Fixed(sample.particle.pavg[0]);
+				sampleInfo3 << ", Pavg1: " << Format::Fixed(sample.particle.pavg[1]);
+				sampleInfo3 << ", Temp: " << Format::Fixed(sample.particle.temp) << " K";
+				// sampleInfo3 << ", Temp: " << Format::Fixed(5) << (sample.particle.temp - 273.15f) * 9.0f / 5.0f + 32.0 << " F";
+				sampleInfo3 << ", Id: " << Format::Fixed(sample.particle.type);
+			}
+		}
+		else{
+			sampleInfo3 << "Flags: 0";
+			sampleInfo3 << ", Pavg0: 0";
+			sampleInfo3 << ", Pavg0: 1";
+			sampleInfo3 << ", Id: 0";
+			sampleInfo3 << ", Temp: 0";
+			// sampleInfo3 << ", Temp: 0";
+		}
+		int textWidth4 = Graphics::textwidth(sampleInfo3.Build());
+		g->fillrect(XRES - 20 - textWidth4, 42, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
+		g->drawtext(XRES - 16 - textWidth4, 44, sampleInfo3.Build(), 255, 255, 255, alpha*0.75f);
 
 #ifndef OGLI
 		if (wavelengthGfx)
@@ -2472,8 +2521,8 @@ void GameView::OnDraw()
 				sampleInfo << ", AHeat: " << sample.AirTemperature - 273.15f << " C";
 
 			textWidth = Graphics::textwidth(sampleInfo.Build());
-			g->fillrect(XRES-20-textWidth, 27, textWidth+8, 14, 0, 0, 0, alpha*0.5f);
-			g->drawtext(XRES-16-textWidth, 30, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
+			g->fillrect(XRES-20-textWidth, 56, textWidth+8, 14, 0, 0, 0, alpha*0.5f);
+			g->drawtext(XRES-16-textWidth, 58, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
 		}
 	}
 
@@ -2481,28 +2530,42 @@ void GameView::OnDraw()
 	{
 		//FPS and some version info
 		StringBuilder fpsInfo;
-		fpsInfo << Format::Precision(2) << "FPS: " << ui::Engine::Ref().GetFps();
+		fpsInfo << Format::Precision(4) << "FPS: " << ui::Engine::Ref().GetFps();
 
-		if (showDebug)
-		{
+		if (showDebug) {
 			if (ren->findingElement)
 				fpsInfo << " Parts: " << ren->foundElements << "/" << sample.NumParts;
 			else
 				fpsInfo << " Parts: " << sample.NumParts;
 		}
-		if (c->GetReplaceModeFlags()&REPLACE_MODE)
-			fpsInfo << " [REPLACE MODE]";
-		if (c->GetReplaceModeFlags()&SPECIFIC_DELETE)
-			fpsInfo << " [SPECIFIC DELETE]";
-		if (ren && ren->GetGridSize())
-			fpsInfo << " [GRID: " << ren->GetGridSize() << "]";
-		if (ren && ren->findingElement)
-			fpsInfo << " [FIND]";
 
 		int textWidth = Graphics::textwidth(fpsInfo.Build());
 		int alpha = 255-introText*5;
 		g->fillrect(12, 12, textWidth+8, 15, 0, 0, 0, alpha*0.5);
 		g->drawtext(16, 16, fpsInfo.Build(), 32, 216, 255, alpha*0.75);
+
+		// Second line
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer[80];
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(buffer, 80, "%d-%m-%Y %I:%M:%S %p", timeinfo); // Get rid of year if nessesary 
+
+		StringBuilder fpsInfo2;
+		fpsInfo2 << buffer << " ";
+
+		if (c->GetReplaceModeFlags()&REPLACE_MODE)
+			fpsInfo2 << " [REPLACE MODE]";
+		if (c->GetReplaceModeFlags()&SPECIFIC_DELETE)
+			fpsInfo2 << " [SPECIFIC DELETE]";
+		if (ren->GetGridSize())
+			fpsInfo2 << " [GRID: " << ren->GetGridSize() << "]";
+
+		int textWidth2 = Graphics::textwidth(fpsInfo2.Build());
+		int alpha2 = 255 - introText * 5;
+		g->fillrect(12, 30, textWidth2 + 8, 15, 0, 0, 0, alpha2 * 0.5);
+		g->drawtext(16, 28, fpsInfo2.Build(), 32, 216, 255, alpha2 * 0.75);
 	}
 
 	//Tooltips

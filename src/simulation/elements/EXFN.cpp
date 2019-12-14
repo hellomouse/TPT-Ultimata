@@ -95,7 +95,7 @@ Element_EXFN::Element_EXFN()
 
 	DefaultProperties.temp = 273.15f;
 	HeatConduct = 0;
-	Description = "Excursion Funnel. Creates a stasis beam depending on tmp. Toggle reverse with GOLD / TTAN";
+	Description = "Excursion Funnel. Creates a stasis beam (direction depends on tmp). Toggle reverse with GOLD / TTAN";
 
 	Properties = TYPE_SOLID;
 
@@ -248,9 +248,9 @@ int Element_EXFN::draw_beam(GRAPHICS_FUNC_ARGS) {
 			r2 = ren->sim->pmap[inity][initx];
 			if (r2 && (ren->sim->elements[TYP(r2)].Properties & TYPE_SOLID) && TYP(r2) != 45) break;
 
-			// Set the stasis field
-			ren->sim->stasis->vx[(inity) / STASIS_CELL][(initx) / STASIS_CELL] = rv * (float)spawndx;
-			ren->sim->stasis->vy[(inity) / STASIS_CELL][(initx) / STASIS_CELL] = rv * (float)spawndy;
+			// Set the stasis field (/4 since it resets every 4 frames)
+			ren->sim->stasis->vx[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += rv * (float)spawndx / 4;
+			ren->sim->stasis->vy[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += rv * (float)spawndy / 4;
 
 			// Beams should push gently towards center
 			if (cpart->pavg[0] < cpart->flags / 2)
@@ -261,9 +261,9 @@ int Element_EXFN::draw_beam(GRAPHICS_FUNC_ARGS) {
 				nudge_speed = -0.5f;
 
 			if (EXFN_DATA::is_up(dir)) {
-				ren->sim->stasis->vx[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += nudge_speed;
+				ren->sim->stasis->vx[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += nudge_speed / 4;
 			} else {
-				ren->sim->stasis->vy[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += nudge_speed;
+				ren->sim->stasis->vy[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += nudge_speed / 4;
 			}
 
 			/* Function to graph: pavg[0] = (flags / 2) + (flags / 2)sin(a(initx - parts[i].x - time))

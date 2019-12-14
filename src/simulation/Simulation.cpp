@@ -31,6 +31,8 @@
 #include "common/tpt-rand.h"
 #include "gui/game/Brush.h"
 
+#include "simulation/quantum/quantum.h"
+
 #ifdef LUACONSOLE
 #include "lua/LuaScriptInterface.h"
 #include "lua/LuaScriptHelper.h"
@@ -2275,6 +2277,7 @@ void Simulation::clear_sim(void)
 		air->ClearAirH();
 	}
 	SetEdgeMode(edgeMode);
+	QUANTUM::quantum_states.clear();
 }
 
 bool Simulation::IsWallBlocking(int x, int y, int type)
@@ -3055,6 +3058,19 @@ void Simulation::kill_part(int i)//kills particle number i
 	if (t == PT_NONE)
 		return;
 
+	// When IONs are killed quantum states must be updated
+	auto itr = QUANTUM::quantum_states.find(parts[i].tmp2);
+	if (itr != QUANTUM::quantum_states.end()) {
+		// Reset all particles in the state
+		for (unsigned int i = 0; i < itr->second.id_order.size(); ++i) {
+			if (parts[itr->second.id_order[i]].type == PT_ION)
+				parts[itr->second.id_order[i]].flags = 0; // Recalculate quantum state
+		}
+
+		// Delete the state
+		itr = QUANTUM::quantum_states.erase(itr);
+	}
+
 	elementCount[t]--;
 
 	parts[i].type = PT_NONE;
@@ -3508,8 +3524,11 @@ void Simulation::UpdateParticles(int start, int end)
 			// Only if particle is non-solid
 			if (stasis->vx[y/STASIS_CELL][x/STASIS_CELL] != 0 || stasis->vy[y / STASIS_CELL][x / STASIS_CELL] != 0) {
 				if (!(elements[TYP(pmap[y][x])].Properties & TYPE_SOLID)) {
-					parts[i].vx = stasis->vx[y / STASIS_CELL][x / STASIS_CELL];
-					parts[i].vy = stasis->vy[y / STASIS_CELL][x / STASIS_CELL];
+					float ease = 0.8f;
+					parts[i].vx += (stasis->vx[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vx) * ease;
+					parts[i].vy += (stasis->vy[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vy) * ease;
+					// parts[i].vx = stasis->vx[y / STASIS_CELL][x / STASIS_CELL];
+					// parts[i].vy = stasis->vy[y / STASIS_CELL][x / STASIS_CELL];
 				}
 			}
 
