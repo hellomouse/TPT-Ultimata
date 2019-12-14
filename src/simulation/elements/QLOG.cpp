@@ -38,10 +38,6 @@ Element_QLOG::Element_QLOG()
 
 	Properties = TYPE_SOLID;
 
-	// Stores IDs of other logic gates
-	DefaultProperties.pavg[0] = -1;
-	DefaultProperties.pavg[1] = -1;
-
 	LowPressure = IPL;
 	LowPressureTransition = NT;
 	HighPressure = IPH;
@@ -60,7 +56,7 @@ Element_QLOG::Element_QLOG()
 //#TPT-Directive ElementHeader Element_QLOG static int update_scan(Particle *parts, int pmap[YRES][XRES], int i, int tx, int ty, bool multi_check)
 int Element_QLOG::update_scan(Particle *parts, int pmap[YRES][XRES], int i, int tx, int ty, bool multi_check) {
 	// Func when sparking, sets life and determines a gate's other inputs
-	parts[ID(pmap[ty][tx])].life = QGATE::COOLDOWN;
+	parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
 	if (multi_check && parts[ID(pmap[ty][tx])].tmp == parts[i].tmp) {
 		if (parts[ID(pmap[ty][tx])].tmp2 == 1 && parts[i].pavg[0] < 0)
 			parts[i].pavg[0] = ID(pmap[ty][tx]);
@@ -106,124 +102,83 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 	int rx, ry, r;
 
     /* When firing the beam searches for any ION in a straight line to modify. Saves distance in flags */
-	if (!QGATE::does_nothing(parts[i].ctype) && parts[i].life == QGATE::COOLDOWN) {
+	if (!QGATE_NAME::does_nothing(parts[i].ctype) && parts[i].life == QGATE_NAME::COOLDOWN) {
 		parts[i].life--;
 		parts[i].flags = -1;
 
 		// Find the ion
-		int ION = find_ion(parts, pmap, i);
 		std::vector<int> IONS;
-		IONS.push_back(ION);
+		IONS.push_back(find_ion(parts, pmap, i));
 
-		LINALG::matrix XGATE;
-		XGATE.push_back(LINALG::vec({0, 1}));
-		XGATE.push_back(LINALG::vec({1, 0}));
-		QUANTUM::apply_gate(XGATE, parts, std::vector<int>(1, ION));
+		// -- Actual gate logic begins here -- //
+		// ----------------------------------- //
+		matrix gate = QGATE::get_matrix_by_id(parts[i].ctype);
+		if (gate.size() == 0 && 
+				parts[i].ctype != QGATE_NAME::RESET &&
+				parts[i].ctype != QGATE_NAME::DETECT) // Invalid gate
+			goto end_logic;
 
+		// Additional logic for multi gates to check all inputs are accounted for
+		// We check gates from 2 inputs to 3 inputs
+		// > Self = Input 0
+		// > pavg[0] = Input 1
+		// > pavg[1] = Input 2
+		for (int shift = 2; shift <= 3; ++shift) {
+			// (2^n by 2^n matrix for 2^n particle state, where n is number of inputs)
+			if (gate.size() >= (1 << shift)) {
+				// Only multi gate input 0 actually does anything
+				if (parts[i].tmp2 > 0)
+					return 0;
 
-		// -- Actual gate logic begins here -- \\
-		// ----------------------------------- \\
-
-		// Single gate, acts on the particle
-		if (!QGATE::is_multi_gate(parts[i].ctype)) {
-			switch(parts[i].ctype) {
-				case QGATE::X: {
-					break;
-				}
-				case QGATE::Y: {
-					break;
-				}
-				case QGATE::Z: {
-					break;
-				}
-				case QGATE::H: {
-					break;
-				}
-				case QGATE::S: {
-					break;
-				}
-				case QGATE::SINV: {
-					break;
-				}
-				case QGATE::T: {
-					break;
-				}
-				case QGATE::TINV: {
-					break;
-				}
-				case QGATE::SQRTNOT: {
-					break;
-				}
-
-				case QGATE::DETECT: {
-					int spin = QMATH::observe(parts[ION].pavg[0], parts[ION].pavg[1]);
-					if (spin == 0) goto end_logic; // Don't spark if spindown
-
-					// SPRK nearby metal
-					for (rx = -1; rx <= 1; rx++)
-					for (ry = -1; ry <= 1; ry++)
-						if (BOUNDS_CHECK && (rx || ry)) {
-							r = pmap[y + ry][x + rx];
-							if (!r) continue;
-							if (!(sim->elements[TYP(r)].Properties&PROP_CONDUCTS))
-								continue;
-
-							parts[ID(r)].life = 4;
-							parts[ID(r)].ctype = TYP(r);
-							sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
-						}
-					break;
-				}
-				default: {
-					break;
-				}
+				// Failed to find a 2ND input (All checks must be present as element might have moved)
+				// or been deleted since last frame
+				int pavg = shift - 2;
+				if (parts[i].pavg[pavg] == -1 || parts[(int)(parts[i].pavg[pavg])].type != PT_QLOG ||
+						parts[i].ctype != parts[(int)(parts[i].pavg[pavg])].ctype ||
+						parts[i].tmp != parts[(int)(parts[i].pavg[pavg])].tmp ||
+						parts[(int)(parts[i].pavg[pavg])].tmp2 != 1)
+					goto end_logic;
+				IONS.push_back(find_ion(parts, pmap, parts[i].pavg[pavg]));
 			}
 		}
-		// Multi gate
-		else {
-			// Only multi gate input 0 actually does anything
-			if (parts[i].tmp2 > 0)
-				return 0;
 
-			// Failed to find a 2ND input (All checks must be present as element might have moved)
-			// or been deleted since last frame
-			if (parts[i].pavg[0] == -1 || parts[(int)(parts[i].pavg[0])].type != PT_QLOG ||
-					parts[i].ctype != parts[(int)(parts[i].pavg[0])].ctype ||
-					parts[i].tmp != parts[(int)(parts[i].pavg[0])].tmp ||
-					parts[(int)(parts[i].pavg[0])].tmp2 != 1)
-				goto end_logic;
+		// Sanity check for ION
+		for (unsigned int l = 0; l < IONS.size(); ++l) {
+			if (IONS[l] < 0)
+				goto end_logic; // Invalid ION found
+		}
 
-			// Self = Input 0
-			// pavg[0] = Input 1
-			// pavg[1] = Input 2 (Not calculated unless needed)
-			int ION1 = find_ion(parts, pmap, parts[i].pavg[0]);
-
-			// 2 Input gates
-			switch(parts[i].ctype) {
-				case QGATE::SWAP: {
-					std::swap(parts[ION].pavg[0], parts[ION1].pavg[1]);
-					goto end_logic;
-				}
-				case QGATE::CNOT: {
-					goto end_logic;
-				}
-				default: break;
+		switch(parts[i].ctype) {
+			// Reset ION state gate
+			case QGATE_NAME::RESET: {
+				QUANTUM::create_particle_state(parts, IONS[0]);
+				parts[IONS[0]].flags = 1;
+				break;
 			}
+			// Detect gate is special
+			case QGATE_NAME::DETECT: {
+				int spin = QUANTUM::measure(IONS[0], parts[IONS[0]].tmp2, parts[i].tmp2);
+				if (spin == 0)
+					goto end_logic; // Don't spark if spindown
 
-			// 3 INPUT gates
-			int ION2 = find_ion(parts, pmap, parts[i].pavg[1]);
+				// SPRK nearby metal
+				for (rx = -1; rx <= 1; rx++)
+				for (ry = -1; ry <= 1; ry++)
+					if (BOUNDS_CHECK && (rx || ry)) {
+						r = pmap[y + ry][x + rx];
+						if (!r) continue;
+						if (!(sim->elements[TYP(r)].Properties&PROP_CONDUCTS))
+							continue;
 
-			// Failed to find a 3RD input (All checks must be present as element might have moved)
-			// or been deleted since last frame
-			if (parts[i].pavg[1] == -1 || parts[(int)(parts[i].pavg[1])].type != PT_QLOG ||
-					parts[i].ctype != parts[(int)(parts[i].pavg[1])].ctype ||
-					parts[i].tmp != parts[(int)(parts[i].pavg[1])].tmp ||
-					parts[(int)(parts[i].pavg[1])].tmp2 != 2)
-				goto end_logic;
-
-			switch(parts[i].ctype) {
-				
-				default: break;
+						parts[ID(r)].life = 4;
+						parts[ID(r)].ctype = TYP(r);
+						sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
+					}
+				break;
+			}
+			default: {
+				QUANTUM::apply_gate(gate, parts, IONS);
+				break;
 			}
 		}
 
@@ -243,7 +198,7 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 
 	/* Beam directions: tmp = 0: left, 1 = up, 2 = right, 3 = down */
 	int dir = parts[i].tmp;
-	bool multi_check = QGATE::is_multi_gate(parts[i].ctype); // Multi gate check
+	bool multi_check = QGATE_NAME::is_multi_gate(parts[i].ctype); // Multi gate check
 
 	for (rx = -1; rx <= 1; rx++)
 		for (ry = -1; ry <= 1; ry++)
@@ -256,6 +211,10 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 				if (!(rx && ry) && parts[ID(r)].type == PT_SPRK) {
 					int tx = parts[i].x;
 					int ty = parts[i].y;
+
+					// Reset before searching
+					parts[i].pavg[0] = -1;
+					parts[i].pavg[1] = -1;
 
 					if (dir == 0 || dir == 2) { // Search vertical
 						ty++;
@@ -281,7 +240,7 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 							tx--;
 						}
 					}
-					parts[i].life = QGATE::COOLDOWN; // Set self life
+					parts[i].life = QGATE_NAME::COOLDOWN; // Set self life
 				}
 			}
 

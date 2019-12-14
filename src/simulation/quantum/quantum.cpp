@@ -14,6 +14,7 @@ using LINALG::vec;
 
 namespace QUANTUM {
 const int MAX_STATES = 1000000000; // Max quantum states, this is about 10000x max particle count (without layering)
+const int MAX_STATE_SIZE = 64; // Max 6 qbit states (2^6 = 64)
 
 /* The quantum state of every particle is saved in this variable
  * It maps the particle state ID (multi particle systems share a state ID)
@@ -36,9 +37,9 @@ int get_new_state_id() {
 
 /**
  * Assigns a particle a quantum state, use when a new
- * ION is created
+ * ION is created. Returns new state id
  */
-void create_particle_state(Particle *parts, int i) {
+int create_particle_state(Particle *parts, int i) {
     QuantumState nstate;
     int stateid = get_new_state_id();
 
@@ -48,21 +49,74 @@ void create_particle_state(Particle *parts, int i) {
     nstate.id_order.push_back(i);
     quantum_states[stateid] = nstate;
     parts[i].tmp2 = stateid;
+    return stateid;
 }
 
 /**
  * Observe a given quantum state (given by state_id, quantum_states[state_id])
  * Upon observing a quantum state the entire state will collapse, meaning for
  * multi-particle states all particles will be affected, even if they're not
- * measured. Will return the basis measurement for particle_index measured
- * by the basis.
+ * measured. Does not actually return any state values
  * 
  * Basis: 0=z, 1=y, 2=x
  */
-void observe(int state_id, int particle_index, int basis=0) {
+void observe(int state_id, int basis) {
     if (quantum_states.find(state_id) == quantum_states.end())
         throw "Quantum state does not exist\n";
+
+    // Pick a random quantum state to collapse to
+    double randomNum = (rand() % 1000000) / 1000000.0;
+    double cprob = 0; // Cumulative probability
+    unsigned int i = 0;
+    for (; i < quantum_states[state_id].state.size(); ++i) {
+        cprob += abs(quantum_states[state_id].state[i]) * abs(quantum_states[state_id].state[i]);
+        if (randomNum < cprob) 
+            break;
+    }
+
+    // Assign new state values
+    for (unsigned int n = 0; n < quantum_states[state_id].state.size(); ++n)
+        quantum_states[state_id].state[n] = std::complex<double>(0, 0);
+    quantum_states[state_id].state[i] = std::complex<double>(1, 0);
 }
+
+/**
+ * Actually measure a specific particle's state. Will
+ * collapse the state of any particles that are entangled
+ * or in the same state as it. Returns particle's state
+ */
+int measure(int particle_id, int state_id, int basis) {
+    observe(state_id, basis);
+
+    // Find the collapsed state and return the particle value
+    for (unsigned int i = 0; i < quantum_states[state_id].state.size(); ++i) {
+        if (quantum_states[state_id].state[i] == 1.0) { // The collapsed state
+            /* The particle state is encoded in the nth binary digit of the index
+             * of the state. For example, if state vector was [0, 1, 0, 0]
+             *                                                00  01 10 11
+             * (2 qbit state) the index below would be 01. If we wished to measure
+             * the 2nd digit, we would take the 2nd binary digit, which is 1, and return it
+             */
+            int index = -std::distance(std::find(
+                quantum_states[state_id].id_order.begin(),
+                quantum_states[state_id].id_order.end(),
+                particle_id), quantum_states[state_id].id_order.begin());
+
+            #ifdef DEBUG_QUANTUM_H
+                std::cout << "\n";
+                std::cout << "Measuring particle " << particle_id << " with state id " << state_id << "\n";
+                std::cout << "This particle exists at index " << index << "\n";
+                std::cout << "Measured spin: " << (((1 << index) & i) ? 1 : 0) << "\n";
+                
+            #endif
+
+            return ((1 << index) & i) ? 1 : 0;
+        }
+    }
+    return 0; // This should never happen but oh well
+}
+
+
 
 /**
  * Applies the given matrix to the quantum state (given by state_id, quantum_states[state_id])
@@ -148,12 +202,16 @@ void apply_gate_raw(const matrix &gate, int state_id, const std::vector<int> &pa
 void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> particle_ids) {
     if (particle_ids.size() == 0)
         return;
+    if (quantum_states.find(parts[particle_ids[0]].tmp2) == quantum_states.end())
+        return;
 
     QuantumState new_state = quantum_states[parts[particle_ids[0]].tmp2];
     int temp_id;
     for (unsigned int i = 1; i < particle_ids.size(); ++i) {
         temp_id = parts[particle_ids[i]].tmp2;
-
+        if (temp_id == parts[particle_ids[0]].tmp2) // Particles are already grouped together
+            continue;
+            
         // Merge states, new_state = new (X) current, and
         // ID orders are simply concanated
         new_state.state = LINALG::tensor_product(new_state.state, quantum_states[temp_id].state);
@@ -165,30 +223,78 @@ void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> pa
     quantum_states[new_state_id] = new_state;
 
     // Set all particles to the new state and delete their old states
-    for (unsigned int i = 0; i < particle_ids.size(); ++i) {
-        if (parts[particle_ids[i]].tmp2 == new_state_id)
+    for (unsigned int i = 0; i < quantum_states[new_state_id].id_order.size(); ++i) {
+        int id = quantum_states[new_state_id].id_order[i];
+        if (parts[id].tmp2 == new_state_id)
             continue; // Don't erase new state by accident
 
-        auto itr = quantum_states.find(parts[particle_ids[i]].tmp2);
+        auto itr = quantum_states.find(parts[id].tmp2);
         if (itr != quantum_states.end())
-            itr = quantum_states.erase(quantum_states.find(parts[particle_ids[i]].tmp2));
-        parts[particle_ids[i]].tmp2 = new_state_id;
+            itr = quantum_states.erase(itr);
+        parts[id].tmp2 = new_state_id;
     }
 
-    std::cout << quantum_states[new_state_id].state.size() << " <- new size\n";
-    std::cout << new_state_id << " found: " << (quantum_states.find(new_state_id) != quantum_states.end()) << "\n";
-    try { apply_gate_raw(gate, new_state_id, particle_ids); }
-    catch(char const* e) { 
-        std::cout << "Error\n";
-        std::cout << "Error " << e << "\n"; 
+    try { 
+        apply_gate_raw(gate, new_state_id, particle_ids);
+    } catch(char const* e) {
+        // We'll ignore errors for now
+        // If in debug mode print
+        #ifdef DEBUG_QUANTUM_H
+            std::cout << "Error " << e << "\n"; 
+        #endif
     }
 
-    // DEBUG: Print state
-    QuantumState temp = quantum_states[new_state_id];
-    for (unsigned int i =0; i < temp.state.size();i++)
-        std::cout << temp.state[i] << " ";
-    std::cout << "\n";
-    std::cout << "Quantum states total: " << quantum_states.size() << "\n";
+    // Collapse state if too big
+    if (quantum_states[new_state_id].state.size() > MAX_STATE_SIZE) {
+        for (unsigned int i = 0; i < quantum_states[new_state_id].id_order.size(); ++i)
+            parts[quantum_states[new_state_id].id_order[i]].flags = 0; // Force regeneration of state
+        quantum_states.erase(quantum_states.find(new_state_id));
+    }
+
+
+    // Debug: print the state
+    #ifdef DEBUG_QUANTUM_H
+        std::cout << "\n" << "Currently applying " << gate.size() << " sized gate  "
+                  << quantum_states[new_state_id].state.size() << " <- new size   "
+                  << new_state_id << " <- new state\n";
+        QuantumState temp = quantum_states[new_state_id];
+        for (unsigned int i = 0; i < temp.state.size();i++)
+            std::cout << temp.state[i] << " ";
+        std::cout << "\n";
+    #endif
 }
+
+/**
+ * Triggers decoherence in a particle. Basically, finds the state
+ * that contains the particle, and seperates each particle
+ * into a random state
+ */
+void decohere_particle(Particle *parts, int i) {
+    auto itr = quantum_states.find(parts[i].tmp2);
+    if (itr == quantum_states.end())
+        return;
+
+    QuantumState state = quantum_states[parts[i].tmp2];
+    for (unsigned int i = 0; i < state.id_order.size(); ++i) {
+        int t = create_particle_state(parts, state.id_order[i]);
+
+        // Randomize the quantum state. We pick 1 number rand1 + rand2 * i
+        // then pick a 2nd number where |n2|^2 + |n1|^2 = 1
+        double rand1 = 0.707 * (rand() % 100000) / 100000.0f, rand2 = 0.707 * (rand() % 100000) / 100000.0f;
+        double number_2_adds_to = 1 - rand1 * rand1 - rand2 * rand2;
+
+        // Right now rand3 and rand4 are square of their actual values
+        double rand3 = number_2_adds_to * (rand() % 100000) / 100000.0f;
+        double rand4 = number_2_adds_to - rand3;
+
+        std::complex<double> n1(rand1, rand2);
+        std::complex<double> n2(sqrt(rand3), sqrt(rand4));
+
+        quantum_states[t].state[0] = n1;
+        quantum_states[t].state[1] = n2;
+    }
+    quantum_states.erase(itr);
+}
+
 
 };

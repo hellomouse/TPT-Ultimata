@@ -2359,7 +2359,7 @@ void GameView::OnDraw()
 				}
 				else if (type == PT_QLOG) {
 					sampleInfo << c->ElementResolve(type, ctype);
-					sampleInfo << " (" << QGATE::get_name(ctype) << ")";
+					sampleInfo << " (" << QGATE_NAME::get_name(ctype) << ")";
 				}
 				else
 				{
@@ -2432,7 +2432,7 @@ void GameView::OnDraw()
 				sampleInfo2 << ", DColor: " << Format::Fixed(sample.particle.dcolour);
 			}
 		}
-		else {
+		else if (showDebug) {
 			sampleInfo2 << "Life: 0";
 			sampleInfo2 << ", Tmp: 0";
 			sampleInfo2 << ", Tmp2: 0";
@@ -2455,7 +2455,7 @@ void GameView::OnDraw()
 				sampleInfo3 << ", Id: " << Format::Fixed(sample.particle.type);
 			}
 		}
-		else{
+		else if (showDebug) {
 			sampleInfo3 << "Flags: 0";
 			sampleInfo3 << ", Pavg0: 0";
 			sampleInfo3 << ", Pavg0: 1";

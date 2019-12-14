@@ -5,45 +5,47 @@ stasis field strength
 - EXFN wave breaks
 
 
-quantum elements :D
-http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.eecs.umich.edu/~jhayes/JPH_DACslides_Jun03.pdf
-http://www.cs.xu.edu/~kinne/quantum/deutche.html
-https://qumystery.tech/
-https://medium.com/@jonathan_hui/qc-quantum-computing-series-10ddd7977abd
-https://medium.com/@jonathan_hui/qc-programming-with-quantum-gates-2-qubit-operator-871528d136db
-https://medium.com/@jonathan_hui/qc-programming-with-quantum-gates-8996b667d256
-https://en.wikipedia.org/wiki/Qubit
-https://towardsdatascience.com/demystifying-quantum-gates-one-qubit-at-a-time-54404ed80640
-
-
-empty dont display debug
-
-display phase of ION in top
-
-move exfn to force
-
-https://www.quantum-inspire.com/
-
-GATES LEFT
-    const int CNOT - 2 input = 3;
-    const int CCNOT = 4;
-    const int CSWAP = 5;
-
-    PREPx, PREPY, PREPZ - set X, Y, Z
-    DETECTX, DETECTY
-        When a qubit is in the \vert R \rangle∣R⟩ state (\vert L \rangle∣L⟩ state), a measurement in the y-basis will result in 0 (1)
-        When a qubit is in the \vert + \rangle∣+⟩ state (\vert - \rangle∣−⟩ state), a measurement in the x-basis will result in 0 (1)
-            (Default is detect Z)
 
 ball lightning
 
 
-QUANTUM TODO
-1. limit state sizes to like 4 or 5
-2. observe
-3. figure out different basis
-4. figure out when to use M (X) I or I (X) M
 
+
+
+
+GATES LEFT
+    DETECTX, DETECTY
+        When a qubit is in the \vert R \rangle∣R⟩ state (\vert L \rangle∣L⟩ state), a measurement in the y-basis will result in 0 (1)
+        When a qubit is in the \vert + \rangle∣+⟩ state (\vert - \rangle∣−⟩ state), a measurement in the x-basis will result in 0 (1)
+            (Default is detect Z)
+QUANTUM TODO
+3. figure out different basis
+
+
+
+
+
+
+have lua mod to place down quantum gates?
+
+
+2 row elements?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANTUM STUFF THIS IS DONE IN CASE U NEED IT 
+EXPLAINATION
 
 Particles should also store not only their id, but particle id in state array
 - state not only stores vector state, but alos ordering of particles
@@ -54,48 +56,13 @@ Particles should also store not only their id, but particle id in state array
  |00000>, |00001>, ...., find where index 0 and 3 are opposite and swap value with the other state
  ie 00010 swaps with 10000 and 01110 swaps with 11100 and so on
 
-
-
-
-(0, 0, 0, 0, 0, 0, 0, 0)
-(0, 0, 0, 0, 0, 0, 0, 1)
-(0, 0, 0, 0, 0, 0, 1, 0)
-(0, 0, 0, 0, 0, 0, 1, 1)
-(0, 0, 0, 0, 0, 1, 0, 0)
-(0, 0, 0, 0, 0, 1, 0, 1)
-(0, 0, 0, 0, 1, 0, 0, 0)
-(0, 0, 0, 0, 1, 0, 1, 0)
-(0, 0, 0, 0, 1, 1, 0, 0)
-(0, 0, 0, 0, 1, 1, 1, 1)
-(0, 0, 0, 1, 0, 0, 0, 0)
-(0, 0, 0, 1, 0, 0, 0, 1)
-(0, 0, 1, 0, 0, 0, 0, 0)
-(0, 0, 1, 0, 0, 0, 1, 0)
-(0, 0, 1, 1, 0, 0, 0, 0)
-(0, 0, 1, 1, 0, 0, 1, 1)
-(0, 1, 0, 0, 0, 0, 0, 0)
-(0, 1, 0, 0, 0, 1, 0, 0)
-(0, 1, 0, 1, 0, 0, 0, 0)
-(0, 1, 0, 1, 0, 1, 0, 1)
-(1, 0, 0, 0, 0, 0, 0, 0)
-(1, 0, 0, 0, 1, 0, 0, 0)
-(1, 0, 1, 0, 0, 0, 0, 0)
-(1, 0, 1, 0, 1, 0, 1, 0)
-(1, 1, 0, 0, 0, 0, 0, 0)
-(1, 1, 0, 0, 1, 1, 0, 0)
-(1, 1, 1, 1, 0, 0, 0, 0)
-(1, 1, 1, 1, 1, 1, 1, 1)
-
-# every non-entangled tensor of length 8
-for length 4, [a, b, c, d] ad - bc = 0 if not entangled
-
-
-
-
-have lua mod to place down quantum gates?
-
-ION
-- temperature dependence
-- energy type
-
-2 row elements?
+https://www.quantum-inspire.com/
+quantum elements :D
+http://vlsicad.eecs.umich.edu/BK/Slots/cache/www.eecs.umich.edu/~jhayes/JPH_DACslides_Jun03.pdf
+http://www.cs.xu.edu/~kinne/quantum/deutche.html
+https://qumystery.tech/
+https://medium.com/@jonathan_hui/qc-quantum-computing-series-10ddd7977abd
+https://medium.com/@jonathan_hui/qc-programming-with-quantum-gates-2-qubit-operator-871528d136db
+https://medium.com/@jonathan_hui/qc-programming-with-quantum-gates-8996b667d256
+https://en.wikipedia.org/wiki/Qubit
+https://towardsdatascience.com/demystifying-quantum-gates-one-qubit-at-a-time-54404ed80640
