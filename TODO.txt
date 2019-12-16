@@ -9,25 +9,28 @@ stasis field strength
 ball lightning
 
 
+realistic stars 
 
 
 
-
-GATES LEFT
-    DETECTX, DETECTY
-        When a qubit is in the \vert R \rangle∣R⟩ state (\vert L \rangle∣L⟩ state), a measurement in the y-basis will result in 0 (1)
-        When a qubit is in the \vert + \rangle∣+⟩ state (\vert - \rangle∣−⟩ state), a measurement in the x-basis will result in 0 (1)
-            (Default is detect Z)
-QUANTUM TODO
-3. figure out different basis
-
-
-
-
-
-
+write guide about quantum 
 have lua mod to place down quantum gates?
 
+moving solids get center during the floodfill portion :D
+
+
+
+Two more particlemaps
+electric field
+magnetic fields
+
+add bio stuff so we can make a realistic human 
+- blood, clots with air
+
+food
+
+
+fancy black holes
 
 2 row elements?
 

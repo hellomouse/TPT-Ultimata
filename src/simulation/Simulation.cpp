@@ -32,6 +32,7 @@
 #include "gui/game/Brush.h"
 
 #include "simulation/quantum/quantum.h"
+#include "simulation/mvsd/movingsolids.h"
 
 #ifdef LUACONSOLE
 #include "lua/LuaScriptInterface.h"
@@ -2278,6 +2279,7 @@ void Simulation::clear_sim(void)
 	}
 	SetEdgeMode(edgeMode);
 	QUANTUM::quantum_states.clear();
+	MOVINGSOLID::solids.clear();
 }
 
 bool Simulation::IsWallBlocking(int x, int y, int type)
@@ -3409,6 +3411,20 @@ void Simulation::UpdateParticles(int start, int end)
 	int surround_hconduct[8];
 	float pGravX, pGravY, pGravD;
 	bool transitionOccurred;
+
+	// Update all moving solids before the particles
+	auto itr = MOVINGSOLID::solids.begin();
+	while (itr != MOVINGSOLID::solids.end()) {
+		// Remove moving solid states that have no particles
+		if (itr->second.particles() == 0)
+			itr = MOVINGSOLID::solids.erase(itr);
+		else
+			itr->second.update(parts, pmap, this);
+
+		// Don't inc if at end this causes crash
+		if (itr != MOVINGSOLID::solids.end())
+			++itr;
+	}
 
 	//the main particle loop function, goes over all particles.
 	for (i = start; i <= end && i <= parts_lastActiveIndex; i++)

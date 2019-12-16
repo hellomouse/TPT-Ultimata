@@ -1,7 +1,7 @@
 #ifndef QUANTUM_H
 #define QUANTUM_H
 
-#define DEBUG_QUANTUM_H // Uncomment for debug mode
+// #define DEBUG_QUANTUM_H // Uncomment for debug mode
 
 #include <unordered_map>
 #include <vector>
@@ -23,7 +23,7 @@ namespace QUANTUM {
     void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> particle_ids);
 
     void decohere_particle(Particle *parts, int i);
-    int create_particle_state(Particle *parts, int i);
+    int create_particle_state(Particle *parts, int i, bool skipdecoherence=false);
 };
 
 #endif

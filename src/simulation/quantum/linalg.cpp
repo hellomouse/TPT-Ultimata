@@ -60,6 +60,8 @@ vec mult_matrix_vec(const matrix &m, const vec &v) {
         std::complex<double> dot_product = 0;
         for (unsigned int i = 0; i < v.size(); i++)
             dot_product += v[i] * m[row][i];
+        if (abs(dot_product) < 0.001)
+            dot_product = std::complex<double>(0, 0); // Rounding error
         returned.push_back(dot_product);
     }
     return returned;

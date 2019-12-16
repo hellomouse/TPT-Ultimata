@@ -39,7 +39,11 @@ int get_new_state_id() {
  * Assigns a particle a quantum state, use when a new
  * ION is created. Returns new state id
  */
-int create_particle_state(Particle *parts, int i) {
+int create_particle_state(Particle *parts, int i, bool skipdecoherence) {
+    if (parts[i].type != PT_ION) return -1;
+    if (!skipdecoherence) // Avoid infinite loop in decohere function
+        decohere_particle(parts, i);
+
     QuantumState nstate;
     int stateid = get_new_state_id();
 
@@ -86,6 +90,9 @@ void observe(int state_id, int basis) {
  * or in the same state as it. Returns particle's state
  */
 int measure(int particle_id, int state_id, int basis) {
+    if (quantum_states.find(state_id) == quantum_states.end())
+        return 0; // Invalid state
+
     observe(state_id, basis);
 
     // Find the collapsed state and return the particle value
@@ -170,15 +177,17 @@ void apply_gate_raw(const matrix &gate, int state_id, const std::vector<int> &pa
         }
 
         // Create the new quantum gate
-        matrix identity = LINALG::get_identity(gate.size());
+        matrix identity = LINALG::get_identity(2);
         newgate = gate;
         while (newgate.size() < qstate_size) {
             newgate = LINALG::kronecker_product(newgate, identity);
         }
 
         // Sanity check
-        if (newgate.size() != qstate_size)
-            throw "New quantum gate size does not equal size of state (This should never happen!)\n";
+        if (newgate.size() > qstate_size)
+            throw "New quantum gate size is larger than size of state (This should never happen!)\n";
+        else if (newgate.size() < qstate_size)
+            throw "New quantum gate size is smaller than size of state (This should never happen!)\n";
 
         // Apply the new gate
         quantum_states[state_id].state = LINALG::mult_matrix_vec(newgate, quantum_states[state_id].state);
@@ -206,6 +215,13 @@ void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> pa
         return;
 
     QuantumState new_state = quantum_states[parts[particle_ids[0]].tmp2];
+
+    // Decohere invalid states (state size = 0)
+    if (new_state.state.size() == 0) {
+        decohere_particle(parts, particle_ids[0]);
+        return;
+    }
+
     int temp_id;
     for (unsigned int i = 1; i < particle_ids.size(); ++i) {
         temp_id = parts[particle_ids[i]].tmp2;
@@ -228,6 +244,16 @@ void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> pa
         if (parts[id].tmp2 == new_state_id)
             continue; // Don't erase new state by accident
 
+        // Sanity check, uncomment if game is crashing
+        // if (parts[id].type != PT_ION) {
+        //     #ifdef DEBUG_QUANTUM_H
+        //     std::cout << "Particle is not of type ION, decohering\n";
+        //     #endif
+
+        //     decohere_particle(parts, particle_ids[0]);
+        //     return;
+        // }
+
         auto itr = quantum_states.find(parts[id].tmp2);
         if (itr != quantum_states.end())
             itr = quantum_states.erase(itr);
@@ -242,25 +268,33 @@ void apply_gate(const LINALG::matrix &gate, Particle *parts, std::vector<int> pa
         #ifdef DEBUG_QUANTUM_H
             std::cout << "Error " << e << "\n"; 
         #endif
+    } 
+    #ifdef DEBUG_QUANTUM_H
+    catch(...) {
+        std::cout << "An unknown error has occured while applying gate of size " << gate.size() << "\n";
     }
+    #endif
 
     // Collapse state if too big
     if (quantum_states[new_state_id].state.size() > MAX_STATE_SIZE) {
         for (unsigned int i = 0; i < quantum_states[new_state_id].id_order.size(); ++i)
             parts[quantum_states[new_state_id].id_order[i]].flags = 0; // Force regeneration of state
         quantum_states.erase(quantum_states.find(new_state_id));
-    }
 
+        #ifdef DEBUG_QUANTUM_H
+        std::cout << "Collapsed state " << new_state_id << ", size too big\n";
+        #endif
+    }
 
     // Debug: print the state
     #ifdef DEBUG_QUANTUM_H
-        std::cout << "\n" << "Currently applying " << gate.size() << " sized gate  "
+        std::cout  << "Currently applied " << gate.size() << " sized gate  "
                   << quantum_states[new_state_id].state.size() << " <- new size   "
                   << new_state_id << " <- new state\n";
         QuantumState temp = quantum_states[new_state_id];
         for (unsigned int i = 0; i < temp.state.size();i++)
             std::cout << temp.state[i] << " ";
-        std::cout << "\n";
+        std::cout << "\n\n";
     #endif
 }
 
@@ -274,9 +308,15 @@ void decohere_particle(Particle *parts, int i) {
     if (itr == quantum_states.end())
         return;
 
+    #ifdef DEBUG_QUANTUM_H
+    std::cout << "Particle with ID " << i << " decohered\n";
+    #endif
+
     QuantumState state = quantum_states[parts[i].tmp2];
     for (unsigned int i = 0; i < state.id_order.size(); ++i) {
-        int t = create_particle_state(parts, state.id_order[i]);
+        if (parts[state.id_order[i]].type != PT_ION)
+            continue;
+        int t = create_particle_state(parts, state.id_order[i], true);
 
         // Randomize the quantum state. We pick 1 number rand1 + rand2 * i
         // then pick a 2nd number where |n2|^2 + |n1|^2 = 1

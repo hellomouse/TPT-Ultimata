@@ -26,6 +26,9 @@ namespace QGATE_NAME {
     const int SQRTNOT = 14;
     const int RESET = 15;
 
+    // Remember when adding gates update does_nothing, get_name,
+    // is_multi_gate and the matrix returns (if applicable)
+
     const int COOLDOWN = 5; // Number of frames QLOG has to cooldown before firing again, if <= 4 then SPRK might SPRK it twice
 
     extern String get_name(int gate_id);
