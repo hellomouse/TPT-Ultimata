@@ -3501,6 +3501,7 @@ void Simulation::UpdateParticles(int start, int end)
 				if (elements[t].Gravity)
 				{
 					//Gravity mode by Moach
+					// If adding new gravity modes make sure to update in simulation/mvsd/movingsolids.cpp
 					switch (gravityMode)
 					{
 					default:

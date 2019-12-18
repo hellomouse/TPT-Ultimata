@@ -1,11 +1,35 @@
 #include <unordered_map>
 #include <list>
+#include <iostream>
 
 #include "simulation/ElementCommon.h"
 
-namespace MOVINGSOLID {
+const float MVSD_GRAVITY = 0.07f;
+const float MVSD_NEWTON_GRAVITY = 0.14f;
+const float MVSD_AIR = 0.004f;
 
-// A group of moving solids
+const float MVSD_BOUNCE = 0.5f;
+
+namespace MOVINGSOLID {
+// Collision types
+const int STATIC = 0;
+const int NONSTATIC = 1;
+const int MOVING = 2;
+
+const float MAX_VELOCITY = 15.0f;
+
+// A collision point
+class Collision {
+public:
+    Collision(int x_, int y_, int type_, int px_, int py_, int cx_, int cy_):
+        x(x_), y(y_), type(type_), px(px_), py(py_), cx(cx_), cy(cy_) {
+            require_snap = fabs(px - cx) > 2 || fabs(py - cy) > 2;
+        };
+    int x, y, px, py, cx, cy, type;
+    bool require_snap = false;
+};
+
+// A group of particles (a moving solid)
 class MVSDGroup {
 public:
     MVSDGroup();
@@ -13,16 +37,41 @@ public:
     void update(Particle *parts, int pmap[YRES][XRES], Simulation *sim);
     void calc_center(Particle *parts);
     void assign_center(int cx, int cy);
+    void add_collision(Collision c) { collisions.push_back(c); }
+    void update_delta(int dx_, int dy_) {
+        if (abs(dx_) < abs(dx) || !usedx) {
+            usedx = true;
+            dx = dx_;
+        }
+        if (abs(dy_) < abs(dy) || !usedy) {
+            usedy = true;
+            dy = dy_;
+        }
+    }
 
+    // Returns direction of each velocity, basically, -1, 0 or 1
+    void get_fake_velocity(int &fvx, int &fvy) {
+        fvx = fvy = 0;
+        if (vx != 0) fvx = vx < 0 ? -1 : 1;
+        if (vy != 0) fvy = vy < 0 ? -1 : 1;
+    }
+
+    float getVX() { return vx; }
+    float getVY() { return vy; }
     int stateID() { return state_id; }
     int particles() { return particle_ids.size(); }
 private:
     std::list<int> particle_ids;
-    int ptype, state_id, cx, cy;
-    float vx, vy;
+    int ptype, state_id, cx, cy, dx, dy;
+    bool usedx = false, usedy = false;
+    float vx, vy, fx, fy;
+    int previous_collision_size = 0;
 
     // Collision handling, saves where the solid has collided with other blocks
-    std::list<std::pair<int, int> > collisions;
+    std::list<Collision> collisions;
+
+    // Helper
+    void calc_forces(Particle *parts, int pmap[YRES][XRES], Simulation *sim);
 };
 
 // Hash map of all moving solids

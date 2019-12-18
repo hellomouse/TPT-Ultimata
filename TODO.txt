@@ -13,10 +13,51 @@ realistic stars
 
 
 
+
+MOVING SOLIDS 
+--------------------------
+todo list
+
+ - conservation of momentum
+2.5 torque
+3. rotation
+
+
+moving solids segfault somehow do more testing
+
+moving solids failing to find group??
+- occurs during undo / redo
+
+conservation of momentuem w/ moving solids 
+- and powders
+
+
+
+create new solid if tmp2 doesn't point to one
+
+
+instead of checking other type have function to check if other weight > current or something
+and see if it should check to collide
+
+torque can be approximated by taking a grid sample of solids across the solid
+- grid should start at a particle in the solid to guarente at least 1 sample
+
+- max moving solid size
+- max num moving solids
+
+- border particles should check for collision, inner particles do not to save computation
+
+collisions with walls
+
+
+
+
+
+
 write guide about quantum 
 have lua mod to place down quantum gates?
 
-moving solids get center during the floodfill portion :D
+
 
 
 
