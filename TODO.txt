@@ -18,22 +18,12 @@ MOVING SOLIDS
 --------------------------
 todo list
 
- - conservation of momentum
 2.5 torque
 3. rotation
 
+if a MVSD gets cut re-group
 
-moving solids segfault somehow do more testing
-
-moving solids failing to find group??
-- occurs during undo / redo
-
-conservation of momentuem w/ moving solids 
-- and powders
-
-
-
-create new solid if tmp2 doesn't point to one
+conservation of momentuem w/ powders
 
 
 instead of checking other type have function to check if other weight > current or something

@@ -2,6 +2,22 @@
 #include "simulation/mvsd/movingsolids.h"
 #include <iostream>
 
+namespace MVSD {
+	void reset(int x, int y, Particle *parts, int pmap[YRES][XRES], int state_id) {
+		if (x < 0 || y < 0 || x > XRES || y > YRES)
+        	return;
+		int id = ID(pmap[y][x]);
+		if (parts[id].type != PT_MVSD || parts[id].tmp2 != state_id)
+        	return;
+		parts[id].tmp2 = 0;
+
+		reset(x - 1, y, parts, pmap, state_id);
+		reset(x + 1, y, parts, pmap, state_id);
+		reset(x, y - 1, parts, pmap, state_id);
+		reset(x, y + 1, parts, pmap, state_id);
+	}
+}
+
 //#TPT-Directive ElementClass Element_MVSD PT_MVSD 196
 Element_MVSD::Element_MVSD() {
 	Identifier = "DEFAULT_PT_MVSD";
@@ -31,9 +47,17 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	if (parts[i].tmp2 == 0)
 		MOVINGSOLID::create_moving_solid(parts, pmap, i);
 
-	/** Failed to find group */
+	int px = (int)(parts[i].x + 0.5);
+	int py = (int)(parts[i].y + 0.5);
+
+	/** 
+	 * Failed to find group, flood fill current state id to 0 and
+	 * recreate the solid. This happens sometimes during undo-redo operations
+	 * (maybe redo/undo changes particle ids?)
+	 */
 	if (MOVINGSOLID::solids.count(parts[i].tmp2) == 0) {
-		std::cout << "FAiled to find froup\n";
+		MVSD::reset(px, py, parts, pmap, parts[i].tmp2);
+		MOVINGSOLID::create_moving_solid(parts, pmap, i);
 		return 0;
 	}
 
@@ -46,8 +70,6 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	bool collided = false;
 	bool is_outer = false;
 
-	int px = (int)(parts[i].x + 0.5);
-	int py = (int)(parts[i].y + 0.5);
 
 	// TODO remove
 	if (parts[i].tmp == 3) parts[i].tmp = 0;

@@ -4124,7 +4124,7 @@ killed:
 			{
 				if (mv > SIM_MAXVELOCITY)
 				{
-					parts[i].vx *= SIM_MAXVELOCITY/mv;
+					https://www.element14.com/community/community/raspberry-pi?src=raspberrypiparts[i].vx *= SIM_MAXVELOCITY/mv;
 					parts[i].vy *= SIM_MAXVELOCITY/mv;
 					mv = SIM_MAXVELOCITY;
 				}

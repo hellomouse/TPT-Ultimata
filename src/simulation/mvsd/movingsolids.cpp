@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 
+#include "simulation/mvsd/mvsd_math.h"
 #include "simulation/ElementCommon.h"
 #include "simulation/mvsd/movingsolids.h"
 
@@ -25,18 +26,18 @@ void MOVINGSOLID::MVSDGroup::calc_center(Particle *parts) {
     if (particle_ids.size() == 0)
         return;
 
-    int sumx = 0, sumy = 0;
+    int sumx = 0, sumy = 0, count = 0;
     for (auto itr = particle_ids.begin(); itr != particle_ids.end(); ++itr) {
-        // Ignore particles that are outside of screen
-        if (parts[*itr].x < 0 || parts[*itr].y < 0)
-            continue;
-
         sumx += (int)(parts[*itr].x + 0.5);
         sumy += (int)(parts[*itr].y + 0.5);
+
+        // Speed up calculation: for large solids only consider every 3rd particle
+        if (particle_ids.size() > 10 && count % 3 == 0) ++itr;
+        count++;
     }
 
-    cx = sumx / particle_ids.size();
-    cy = sumy / particle_ids.size();
+    cx = sumx / count;
+    cy = sumy / count;
 }
 
 // Redefine center of mass
@@ -83,38 +84,24 @@ void MOVINGSOLID::MVSDGroup::calc_forces(Particle *parts, int pmap[YRES][XRES], 
 }
 
 void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simulation *sim) {
-    auto i = particle_ids.begin();
-    bool has_particle_removed = false;
-    bool willcollide = false;
-    int collision_type = 0;
-    int newx, newy;
-   
-    while (i != particle_ids.end()) {
-        // Particle no longer exists, delete it
-        while (parts[*i].type != ptype || parts[*i].tmp2 != state_id) {
-            i = particle_ids.erase(i);
-            has_particle_removed = true;
-            if (i == particle_ids.end()) break;
-        }
-        if (i != particle_ids.end()) ++i;
-    }
-
     if (particle_ids.size() == 0)
         return;
 
-    // Bounce on collision
+    // Collision handling
+    // ---------------------------------------------
     bool should_bounce = false; // Should the particle bounce off the surface or ignore bounce
     bool should_freeze = false; // Should the particle freeze? (ie on a surface) or ignore
+    bool velocity_is_fast = (fabs(vx) > 0.5 || fabs(vy) > 0.5); // Fast enough to bounce?
 
     float deflectx = 0, deflecty = 0; // Keep track of deflection dir, this is like a "net force" vector
     int total_repel_x = 0, total_repel_y = 0; // Tracks direction to "repel" away from other particles / solids
     float rotate_sum = 0; // Keep track of total torque
 
-    int fake_vx, fake_vy;
+    int fake_vx, fake_vy; // -1, 0, or 1 representing direction of travel
     get_fake_velocity(fake_vx, fake_vy);
 
-    // bool velocity_is_fast = (fabs(vx) > 1 || fabs(vy) > 1);
-    bool velocity_is_fast = (fabs(vx) > 0.5 || fabs(vy) > 0.5);
+    std::list<MVSDGroup*> moving_solids_to_bounce;
+    
 
     for (auto i = collisions.begin(); i != collisions.end(); ++i) {
         /**
@@ -165,7 +152,12 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         }
 
         // Collision with another moving solid
-        else if (i->type == MOVING) {
+        // Determine if we should deflect it
+        else if (i->type == MOVING && velocity_is_fast) {
+            MVSDGroup *other_solid = &solids[parts[ID(pmap[i->cy][i->cx])].tmp2];
+            if (!(other_solid->vx || other_solid->vy)) {
+                moving_solids_to_bounce.push_back(other_solid);
+            }
         }
     }
 
@@ -186,16 +178,21 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // Solid should bounce. If a dx or dy is indicated the solid will bounce
     // anyways because that only happens if velocity is extremely large and solid
     // risks phasing into solids
+    float angle = fast_atan2(deflecty, deflectx);
+    float v_mag = sqrtf(vx * vx + vy * vy);
+
     if (!should_freeze && (usedx || usedy || should_bounce)) {
         // Only bounce if deflect is large enough, otherwise you might get
         // extreme deflection angles from 1 or 2px of collision
         if (deflectx || deflecty) {
-            float angle = atan2(deflecty, deflectx);
-            float v_mag = sqrtf(vx * vx + vy * vy);
-
             vx = v_mag * cos(angle) * MVSD_BOUNCE;
             vy = v_mag * sin(angle) * MVSD_BOUNCE;
         }
+    }
+
+    for (auto i = moving_solids_to_bounce.begin(); i != moving_solids_to_bounce.end(); ++i) {
+        (*i)->vx = v_mag * cos(angle + 3.1415) * MVSD_BOUNCE;
+        (*i)->vy = v_mag * sin(angle + 3.1415) * MVSD_BOUNCE;
     }
 
     // Limit max velocity
@@ -204,9 +201,17 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     if (fabs(vy) > MAX_VELOCITY)
         vy = vy < 0 ? -MAX_VELOCITY : MAX_VELOCITY;
 
+
     // Update all individual particles
-    i = particle_ids.begin();
+    // ---------------------------------------------
+    auto i = particle_ids.begin();
     while (i != particle_ids.end()) {
+        // Particle no longer exists, delete it
+        while (parts[*i].type != ptype || parts[*i].tmp2 != state_id) {
+            i = particle_ids.erase(i);
+            if (i == particle_ids.end()) break;
+        }
+        
         int px = parts[*i].x;
         int py = parts[*i].y;
 
@@ -228,24 +233,25 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             std::cout << vx << ", " << vy << ", delta: " << dx << ", " << dy << "\n";
         }
         
-        ++i;
+        if (i != particle_ids.end()) ++i;
+        // ++i;
     }
 
     // We can approximate the center of gravity update
     // However the below applied value is not 100% accurate
     // due to rounding error so we have to recalculate
-    // every couple of frames to avoid drift. Also center should
-    // be recalculated on collision
-    if (sim->timer % 10 == 0 || (collisions.size() > 0 && previous_collision_size != collisions.size())) {
+    // every couple of frames to avoid drift. 
+    if (sim->timer % 10 == 0) { //  || (collisions.size() > 0 && previous_collision_size != collisions.size())
         calc_center(parts);
     } else {
         cx = (int)(cx + vx + 0.5);
         cy = (int)(cy + vy + 0.5);
     }
-
     if (cx < 0) cx = 0;
     if (cy < 0) cy = 0;
 
+    // Reset everything for next cycle
+    // ---------------------------------------------
     dx = dy = 100;
     usedx = false, usedy = false;
     previous_collision_size = collisions.size();
