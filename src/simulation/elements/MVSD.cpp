@@ -44,6 +44,10 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	 * If tmp2 is 0 the particle will automatically begin a floodfill to detect other MVSD that
 	 * belongs to this moving solid, and group any that are not part of this moving solid group
 	 * 
+	 * If flags = 1, solid should be reconstructed (Edit was made)
+	 * 
+	 * life stores previous ctype (If it was stained by portal gel)
+	 * 
 	 * pavg[0] and pavg[1] store the solid's velocity for updating when a solid is cut
 	 * into 2 solids
 	 */
@@ -73,8 +77,8 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 		return 0;
 	}
 
-	/* Ctype is not a solid */
-	if (!(sim->elements[parts[i].ctype].Properties & TYPE_SOLID))
+	/* Ctype is not a solid or portal gel */
+	if (!(sim->elements[parts[i].ctype].Properties & TYPE_SOLID) && parts[i].ctype != PT_PGEL)
 		parts[i].ctype = 0;
 
 	/* Basic ctype mimicing */
@@ -171,6 +175,10 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 					sim->pv[y / CELL][x / CELL] += 0.25f * CFDS;
 				}
 
+				// Unstain portal gel
+				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW)
+					parts[i].ctype = parts[i].life;
+
 				// Collision with another moving solid
 				if (rt == PT_MVSD && parts[ID(r)].tmp2 != parts[i].tmp2) {
 					MOVINGSOLID::solids[parts[i].tmp2].add_collision(
@@ -182,7 +190,7 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 					if (sim->elements[rt].Properties & TYPE_SOLID)
 						MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 							MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::STATIC, px, py, x + rx, y + ry));
-					else if (sim->elements[rt].Properties & TYPE_PART)
+					else if (sim->elements[rt].Properties & TYPE_PART || rt == PT_PGEL)
 						MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 							MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::NONSTATIC, px, py, x + rx, y + ry));
 				}

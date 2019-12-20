@@ -127,6 +127,10 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         if (testx < 0 || testy < 0 || testx >= XRES || testy >= YRES)
             continue;
 
+        // Should collision be super-bouncy? (If portal gel ctype)
+        if (parts[ID(pmap[i->py][i->px])].ctype == PT_PGEL)
+            big_bounce = true;
+
         int r = pmap[testy][testx];
         MVSDGroup *other_solid = &solids[parts[ID(pmap[i->cy][i->cx])].tmp2];
 
@@ -201,6 +205,7 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         // Only bounce if deflect is large enough, otherwise you might get
         // extreme deflection angles from 1 or 2px of collision
         if (deflectx || deflecty) {
+            if (big_bounce) v_mag *= 2.0f;
             vx = v_mag * cos(angle) * MVSD_BOUNCE;
             vy = v_mag * sin(angle) * MVSD_BOUNCE;
         }
@@ -279,7 +284,7 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // ---------------------------------------------
     dx = dy = 100;
     usedx = false, usedy = false;
-    another_particle_overlap = false;
+    another_particle_overlap = big_bounce = false;
     previous_collision_size = collisions.size();
     collisions.clear();
 
