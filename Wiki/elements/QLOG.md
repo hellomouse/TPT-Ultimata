@@ -89,12 +89,16 @@ You'll probably want one of these at the beginning of your circuit, it resets th
 ## Technical
 #### Properties
 **ctype:** Gate type, see above
+
 **tmp:** Beam direction, see above
 
 You should *reeeallllyy* not touch these, these are mostly temp variables that get used for 1 frame:
 
 **flags:** For multi-qbit gates that has a tmp2 > 1 (not the first input), stores particle ID of the first input.
+
 **tmp2:** For multi-qbit gates, stores which input the particle is (0 = INPUT 1, 1 = INPUT 2, 2 = INPUT 3)
+
 **pavg[0]:** For multi-qbit gates, particle ID of the 2nd input if current gate is 1st input
+
 **pavg[1]:** For multi-qbit gates, particle ID of the 3rd input if current gate is 1st input
 
