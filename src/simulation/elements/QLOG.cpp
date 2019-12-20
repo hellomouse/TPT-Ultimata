@@ -222,7 +222,6 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 							continue;
 						}
 
-
 						// SPRK nearby metal
 						if (!(sim->elements[TYP(r)].Properties & PROP_CONDUCTS))
 							continue;
@@ -303,7 +302,6 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 //#TPT-Directive ElementHeader Element_QLOG static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_QLOG::graphics(GRAPHICS_FUNC_ARGS) {
 	// Vary color based on ctype
-	// TODO maybe pre-make array of colors
 	if (cpart->ctype % 2 == 0) *colb += 30 * cpart->ctype;
 	else *colg += 30 * cpart->ctype;
 

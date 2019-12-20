@@ -1,9 +1,5 @@
 napalm sticky
 
-stasis field strength
-- set by temp
-- EXFN wave breaks
-
 
 
 ball lightning
@@ -28,7 +24,10 @@ supergiant goes supernova and collapses either into black hole or neutron star
 
 mass can be sucked away by gravity
 
-neutrotoxin!
+
+
+display, tmp and life row duplicated
+- also show particle ID
 
 
 
@@ -38,15 +37,17 @@ with rings moving outward
 
 MOVING SOLIDS 
 --------------------------
-clean up debug code
-
 2.5 torque
 3. rotation
 torque can be approximated by taking a grid sample of solids across the solid
 - grid should start at a particle in the solid to guarente at least 1 sample
 
 
+wiki: if tmp > 0 then it will NOT pressure
 
+
+
+flying vehicles
 
 
 

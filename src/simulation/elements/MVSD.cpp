@@ -136,8 +136,18 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 
 	int r, rx, ry;
 
+	// Flag if it overlaps
 	if (sim->pmap_count[y][x] > 1)
 		MOVINGSOLID::solids[parts[i].tmp2].flag_overlap();
+
+	// Should it make pressure on impact?
+	MOVINGSOLID::solids[parts[i].tmp2].should_impact_pressure(parts[i].tmp == 0);
+
+	// If self has a velocity somehow update the moving solid
+	if (parts[i].vx || parts[i].vy) {
+		MOVINGSOLID::solids[parts[i].tmp2].set_velocity(parts[i].vx, parts[i].vy);
+		parts[i].vx = parts[i].vy = 0;
+	}
 
 	// Check surrounding particles. These are "touching"
 	// collisions, as in the solid is flush with another particle
@@ -188,13 +198,10 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 			return 0;
 
 		float dvx = vx_ / largest, dvy = vy_ / largest;
-
 		float sx = (int)(parts[i].x + 0.5), sy = (int)(parts[i].y + 0.5);
 		int px = 0, py = 0;
-		// int tx = (int)(parts[i].x + vx_ + 0.5), ty = (int)(parts[i].y + vy_ + 0.5);
 		int count = 1;
 
-		// TODO dont check same coordinate twice
 		while (sx >= 0 && sy >= 0 && sx < XRES && sy < YRES && fabs(-dvx + dvx * count) <= fabs(vx_) && fabs(-dvy + dvy * count) <= fabs(vy_)) {
 			if (px == (int)round(sy) && py == (int)round(sy))
 				goto endloop;
@@ -206,7 +213,6 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 
 			r = pmap[(int)round(sy)][(int)round(sx)];
 			if (r) {
-				// std::cout << i << ": " << sx << ", " << sy << "\n";
 				if (TYP(r) != PT_MVSD && 
 						(sim->elements[TYP(r)].Properties & TYPE_PART ||
 						 sim->elements[TYP(r)].Properties & TYPE_SOLID)) {
@@ -233,8 +239,7 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 
 			endloop:
 			px = (int)round(sx); py = (int)round(sy);
-			sx += dvx;
-			sy += dvy;
+			sx += dvx; sy += dvy;
 			count++;
 		}
 	}
@@ -258,23 +263,6 @@ int Element_MVSD::graphics(GRAPHICS_FUNC_ARGS) {
 			*colg += sin(gradv * caddress * 4.55 + 3.14) * 34;
 			*colb += sin(gradv * caddress * 2.22 + 3.14) * 64;
 		}
-	}
-
-
-	if (cpart->tmp == 1) {
-		*colb = 255;
-		*colr = 255;
-		*colg = 0;
-	}
-	if (cpart->tmp == 2) {
-		*colb = 0;
-		*colr = 255;
-		*colg = 255;
-	}
-	if (cpart->tmp == 3) {
-		*colb = 255;
-		*colr = 255;
-		*colg = 255;
 	}
 
 	return 0;

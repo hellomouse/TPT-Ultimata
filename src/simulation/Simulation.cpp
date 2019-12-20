@@ -3545,13 +3545,10 @@ void Simulation::UpdateParticles(int start, int end)
 
 			// Stasis fields slowly negate particle velocities towards the value
 			// Only if particle is non-solid
-			if (stasis->vx[y/STASIS_CELL][x/STASIS_CELL] != 0 || stasis->vy[y / STASIS_CELL][x / STASIS_CELL] != 0) {
-				if (!(elements[TYP(pmap[y][x])].Properties & TYPE_SOLID)) {
-					float ease = 0.8f;
-					parts[i].vx += (stasis->vx[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vx) * ease;
-					parts[i].vy += (stasis->vy[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vy) * ease;
-					// parts[i].vx = stasis->vx[y / STASIS_CELL][x / STASIS_CELL];
-					// parts[i].vy = stasis->vy[y / STASIS_CELL][x / STASIS_CELL];
+			if (stasis->strength[y/STASIS_CELL][x/STASIS_CELL] != 0) {
+				if (pmap[y][x] && !(elements[TYP(pmap[y][x])].Properties & TYPE_SOLID)) {
+					parts[i].vx += (stasis->vx[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vx) * stasis->strength[y/STASIS_CELL][x/STASIS_CELL];
+					parts[i].vy += (stasis->vy[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vy) * stasis->strength[y/STASIS_CELL][x/STASIS_CELL];
 				}
 			}
 

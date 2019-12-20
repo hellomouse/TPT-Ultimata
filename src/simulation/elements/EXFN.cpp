@@ -93,7 +93,7 @@ Element_EXFN::Element_EXFN()
 
 	Weight = 100;
 
-	DefaultProperties.temp = 273.15f;
+	DefaultProperties.temp = 273.15;
 	HeatConduct = 0;
 	Description = "Excursion Funnel. Creates a stasis beam (direction depends on tmp). Toggle reverse with GOLD / TTAN";
 
@@ -114,9 +114,13 @@ Element_EXFN::Element_EXFN()
 //#TPT-Directive ElementHeader Element_EXFN static int update(UPDATE_FUNC_ARGS)
 int Element_EXFN::update(UPDATE_FUNC_ARGS) {
 	int r, rx, ry, id;
-	int period = parts[i].flags * 4; // Period = 4 * height
 	int spawndx, spawndy, initx, inity, dir;
 	EXFN_DATA::set_directions(spawndx, spawndy, initx, inity, dir, parts[i].x, parts[i].y, parts[i].tmp);
+
+	if (parts[i].temp>=256.0+273.15)
+		parts[i].temp=256.0+273.15;
+	if (parts[i].temp<= -256.0+273.15)
+		parts[i].temp = -256.0+273.15;
 
 	/* EXFN properties with not EXFN:
 	 * - SPRK (.ctype GOLD): toggle self tmp2 = 0
@@ -245,12 +249,14 @@ int Element_EXFN::draw_beam(GRAPHICS_FUNC_ARGS) {
 		while (initx >= 0 && inity >= 0 && initx < XRES && inity < YRES) {
 			// Don't overwrite any solids
 			// The exception is glass (ID 45)
+			// and MVSD (ID 196)
 			r2 = ren->sim->pmap[inity][initx];
-			if (r2 && (ren->sim->elements[TYP(r2)].Properties & TYPE_SOLID) && TYP(r2) != 45) break;
+			if (r2 && (ren->sim->elements[TYP(r2)].Properties & TYPE_SOLID) && TYP(r2) != 45 &&  TYP(r2) != 196) break;
 
 			// Set the stasis field (/4 since it resets every 4 frames)
 			ren->sim->stasis->vx[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += rv * (float)spawndx / 4;
 			ren->sim->stasis->vy[(inity) / STASIS_CELL][(initx) / STASIS_CELL] += rv * (float)spawndy / 4;
+			ren->sim->stasis->strength[(inity) / STASIS_CELL][(initx) / STASIS_CELL] = (cpart->temp - (273.15f - 256.0f)) * 1.6f / 512;
 
 			// Beams should push gently towards center
 			if (cpart->pavg[0] < cpart->flags / 2)

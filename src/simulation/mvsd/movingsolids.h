@@ -4,9 +4,12 @@
 
 #include "simulation/ElementCommon.h"
 
-const float MVSD_GRAVITY = 0.07f;
+const float MVSD_GRAVITY = 0.09f;
 const float MVSD_NEWTON_GRAVITY = 0.14f;
-const float MVSD_AIR = 0.004f;
+const float MVSD_AIR = 0.006f;
+
+const float MVSD_MAX_IMPACT_PRESSURE = 10.0f;
+const float MVSD_MIN_VELOCITY_TO_DAMAGE = 3.0f;
 
 const float MVSD_BOUNCE = 0.5f;
 
@@ -41,6 +44,7 @@ public:
     void assign_center(int cx, int cy);
     void add_collision(Collision c) { collisions.push_back(c); }
     void flag_overlap() { another_particle_overlap = true; }
+    void should_impact_pressure(bool val) { should_pressure_on_impact = val; }
     void update_delta(int dx_, int dy_) {
         if (abs(dx_) < abs(dx) || !usedx) {
             usedx = true;
@@ -74,7 +78,8 @@ private:
     int ptype, state_id, cx, cy, dx, dy;
     bool usedx = false, usedy = false;
     float vx, vy, fx, fy, pfx, pfy;
-    int previous_collision_size = 0;
+    unsigned int previous_collision_size = 0;
+    bool should_pressure_on_impact = false; // Make pressure on impact?
     bool another_particle_overlap = false; // Is the MVSD phased into another particle?
 
     // Collision handling, saves where the solid has collided with other blocks

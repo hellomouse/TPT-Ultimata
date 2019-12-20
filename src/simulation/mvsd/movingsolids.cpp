@@ -49,8 +49,6 @@ void MOVINGSOLID::MVSDGroup::assign_center(int _cx, int _cy) {
 
 // Compute forces due to gravity, pressure, etc...
 void MOVINGSOLID::MVSDGroup::calc_forces(Particle *parts, int pmap[YRES][XRES], Simulation *sim) {
-    // TODO consider all forces in sim and create a "net force"
-    // with magntidue and direction and then compute torque if applicable
     // calculate net torque on solid and net force and
     // move particles with the force and rotate the entire solid
 
@@ -78,7 +76,11 @@ void MOVINGSOLID::MVSDGroup::calc_forces(Particle *parts, int pmap[YRES][XRES], 
     fx += MVSD_AIR * sim->vx[cy / CELL][cx / CELL];
     fy += MVSD_AIR * sim->vy[cy / CELL][cx / CELL];
 
-    // Stasis field (TODO)
+    // Stasis field
+    if (sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL] != 0) {
+        fx += (sim->stasis->vx[cy / STASIS_CELL][cx / STASIS_CELL] - vx) * sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL];
+        fy += (sim->stasis->vy[cy / STASIS_CELL][cx / STASIS_CELL] - vy) * sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL];
+    }
 
     // Apply the net force (it's really an acceleration tbh)
     vx += fx;
@@ -100,10 +102,11 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     float rotate_sum = 0; // Keep track of total torque
 
     int fake_vx, fake_vy; // -1, 0, or 1 representing direction of travel
+    float v_mag = sqrtf(vx * vx + vy * vy);
     get_fake_velocity(fake_vx, fake_vy);
 
+    // Fake ass momentum conservation
     std::vector<MVSDGroup*> moving_solids_to_bounce;
-
 
     for (auto i = collisions.begin(); i != collisions.end(); ++i) {
         /**
@@ -129,14 +132,10 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
 
         if ((i->cx - i->px == fake_vx && i->cy - i->py == fake_vy) || 
             (r && (TYP(r) != ptype || parts[ID(r)].tmp2 != state_id))) {
-           
             bool not_other_is_small_mvsd = (i->type != MOVING || other_solid->particles() > BIG_SOLID);
-            bool other_mvsd_similar_velocity =
-                i->type == MOVING && is_same_sign(vx, other_solid->vx) && is_same_sign(vy, other_solid->vy);
 
             // If we're approaching the other object at "high speed" then bounce
-            // Don't bounce if other moving solid is tiny or moving in the same direction
-            if (velocity_is_fast && not_other_is_small_mvsd && !other_mvsd_similar_velocity) {
+            if (velocity_is_fast && not_other_is_small_mvsd) {
                 should_bounce = true;
             }
 
@@ -150,10 +149,8 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             }
 
             // Update net force direction
-            if (!other_mvsd_similar_velocity) {
-                deflectx -= i->cx - i->px;
-                deflecty -= i->cy - i->py;
-            }
+            deflectx -= i->cx - i->px;
+            deflecty -= i->cy - i->py;
 
             // Update net torque
         }
@@ -174,6 +171,10 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             parts[r].vx += vx * 2;
             parts[r].vy += vy * 2;
         }
+        
+        // Make impact on fall
+        if (should_pressure_on_impact && collisions.size() != previous_collision_size && v_mag > MVSD_MIN_VELOCITY_TO_DAMAGE)
+            sim->pv[i->cy / CELL][i->cx / CELL] += MVSD_MAX_IMPACT_PRESSURE * v_mag / (1.141 * MAX_VELOCITY);
     }
 
     // To prevent phasing through solids we negate solids that should
@@ -195,8 +196,7 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // anyways because that only happens if velocity is extremely large and solid
     // risks phasing into solids
     float angle = fast_atan2(deflecty, deflectx);
-    float v_mag = sqrtf(vx * vx + vy * vy);
-
+    
     if (!should_freeze && (usedx || usedy || should_bounce)) {
         // Only bounce if deflect is large enough, otherwise you might get
         // extreme deflection angles from 1 or 2px of collision
@@ -230,16 +230,6 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             particle_removed = true;
             continue;
         }
-        
-        int px = parts[*i].x;
-        int py = parts[*i].y;
-
-        // Temp code to mark center of mass for deco
-        if ((int)(parts[*i].x) == cx || 
-            (int)(parts[*i].y) == cy)
-            parts[*i].tmp = 2;
-        else
-            parts[*i].tmp = 0;
 
         // If dx or dy is enabled that means the particle will
         // "snap" to a new location (ie when velocity is fast and
@@ -253,11 +243,11 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         else
             parts[*i].y += vy;
 
-        // Warns about rubberbanding debug TODO
-        if (abs(px - parts[*i].x) + abs(py - parts[*i].y) > 50) {
-            std::cout << px << ", " << py << " -> " << parts[*i].x << ", " << parts[*i].y << "\n";
-            std::cout << vx << ", " << vy << ", delta: " << dx << ", " << dy << "\n";
-        }
+        // Warns about rubberbanding (debug)
+        // if (abs(px - parts[*i].x) + abs(py - parts[*i].y) > 50) {
+        //     std::cout << px << ", " << py << " -> " << parts[*i].x << ", " << parts[*i].y << "\n";
+        //     std::cout << vx << ", " << vy << ", delta: " << dx << ", " << dy << "\n";
+        // }
         
         if (i != particle_ids.end()) ++i;
     }
