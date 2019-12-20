@@ -43,6 +43,9 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	 * Moving solid setup: moving solids are grouped by their ID, which is defined by tmp2
 	 * If tmp2 is 0 the particle will automatically begin a floodfill to detect other MVSD that
 	 * belongs to this moving solid, and group any that are not part of this moving solid group
+	 * 
+	 * pavg[0] and pavg[1] store the solid's velocity for updating when a solid is cut
+	 * into 2 solids
 	 */
 	if (parts[i].tmp2 == 0)
 		MOVINGSOLID::create_moving_solid(parts, pmap, i);
@@ -53,53 +56,80 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	/** 
 	 * Failed to find group, flood fill current state id to 0 and
 	 * recreate the solid. This happens sometimes during undo-redo operations
-	 * (maybe redo/undo changes particle ids?)
+	 * (maybe redo/undo changes particle ids?) Also if flags = 1 redo, there
+	 * is a chance the solid was cut
 	 */
-	if (MOVINGSOLID::solids.count(parts[i].tmp2) == 0) {
+	if (MOVINGSOLID::solids.count(parts[i].tmp2) == 0 || parts[i].flags == 1) {
 		MVSD::reset(px, py, parts, pmap, parts[i].tmp2);
 		MOVINGSOLID::create_moving_solid(parts, pmap, i);
+
+		// If the solid was cut, we'll need to set its velocity to the original
+		if (parts[i].flags == 1) {
+			MOVINGSOLID::solids[parts[i].tmp2].set_velocity(parts[i].pavg[0], parts[i].pavg[1]);
+			parts[i].pavg[0] = parts[i].pavg[1] = 0.0f;
+		}
+
+		parts[i].flags = 0;
 		return 0;
 	}
 
-	/**
-	 * On collision with non-moving solid object it will
-	 * determine whether to mark itself as having collided
-	 * with the object by setting self flags to 1.
-	 */
-	int r, rx, ry;
-	bool collided = false;
-	bool is_outer = false;
 
+	/* Ctype is not a solid */
+	if (!(sim->elements[parts[i].ctype].Properties & TYPE_SOLID))
+		parts[i].ctype = 0;
+
+	/* Basic ctype mimicing */
+	if (parts[i].ctype) {
+		// Melt if ctype allows it
+		if (sim->elements[parts[i].ctype].HighTemperatureTransition != NT
+				&& parts[i].temp > sim->elements[parts[i].ctype].HighTemperature) {
+			int temp = sim->create_part(-3, x, y, sim->elements[parts[i].ctype].HighTemperatureTransition);
+			parts[temp].ctype = parts[i].ctype;
+			parts[temp].temp = parts[i].temp;
+			parts[temp].vx = MOVINGSOLID::solids[parts[i].tmp2].getVX();
+			parts[temp].vy = MOVINGSOLID::solids[parts[i].tmp2].getVY();
+			sim->kill_part(i);
+			return 0;
+		}
+
+		// Shatter depending on pressure transition
+	}
+
+
+
+	int r, rx, ry;
 
 	// TODO remove
 	if (parts[i].tmp == 3) parts[i].tmp = 0;
 
 
-	// int fvx, fvy;
-	// MOVINGSOLID::solids[parts[i].tmp2].get_fake_velocity(fvx, fvy);
+
+
+
 
 	// Check surrounding particles. These are "touching"
 	// collisions, as in the solid is flush with another particle
 	for (rx=-1; rx<2; rx++)
 		for (ry=-1; ry<2; ry++)
 			if (BOUNDS_CHECK && (rx || ry)) {
+				// Allow wall collisions
+				if (sim->IsWallBlocking(x + rx, y + ry, PT_MVSD))
+					MOVINGSOLID::solids[parts[i].tmp2].add_collision(
+						MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::STATIC, px, py, x + rx, y + ry));
+
 				r = pmap[y+ry][x+rx];
 				if (!r) {
-					is_outer = true;
 					continue;
 				}
 				int rt = TYP(r);
 
 				// Collision with another moving solid
 				if (rt == PT_MVSD && parts[ID(r)].tmp2 != parts[i].tmp2) {
-					collided = true;
 					MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 						MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::MOVING, px, py, x + rx, y + ry));
-					is_outer = true;
 				}
 
 				else if (rt != PT_MVSD) {
-					collided = true;
 					parts[i].tmp = 3; // TODO deco
 					if (sim->elements[rt].Properties & TYPE_SOLID)
 						MOVINGSOLID::solids[parts[i].tmp2].add_collision(
@@ -107,14 +137,8 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 					else if (sim->elements[rt].Properties & TYPE_PART)
 						MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 							MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::NONSTATIC, px, py, x + rx, y + ry));
-					is_outer = true;
 				}
 			}
-
-	// if (is_outer)
-	// 	parts[i].tmp = 3;
-	// else if (parts[i].tmp == 3 && !is_outer)
-	// 	parts[i].tmp = 0;
 
 	// Check for phasing into solids
 	float vx_ = MOVINGSOLID::solids[parts[i].tmp2].getVX(),
@@ -149,7 +173,8 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 						(sim->elements[TYP(r)].Properties & TYPE_PART ||
 						 sim->elements[TYP(r)].Properties & TYPE_SOLID)) {
 					MOVINGSOLID::solids[parts[i].tmp2].add_collision(
-						MOVINGSOLID::Collision((int)sx, (int)sy, MOVINGSOLID::NONSTATIC,
+						MOVINGSOLID::Collision((int)sx, (int)sy, 
+						sim->elements[TYP(r)].Properties & TYPE_PART ? MOVINGSOLID::NONSTATIC : MOVINGSOLID::STATIC,
 						px, py, (int)round(sx), (int)round(sy)));
 
 					int dx = (int)round(sx) - px;
@@ -158,7 +183,6 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 					if (dx != 0) dx += dx < 0 ? 1 : -1;
 					if (dy != 0) dy += dy < 0 ? 1 : -1;
 						
-					// std::cout << parts[i].x << ", " << parts[i].y << ": " << dx << ": " << dy << "\n";
 					MOVINGSOLID::solids[parts[i].tmp2].update_delta(dx, dy);
 					parts[i].tmp = 1;
 					break;
@@ -177,21 +201,19 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 		}
 	}
 
-	parts[i].flags = collided ? 1 : 0;
-
 	return 0;
 }
 
 //#TPT-Directive ElementHeader Element_MVSD static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_MVSD::graphics(GRAPHICS_FUNC_ARGS) {
-	// graphics code here
-	// return 1 if nothing dymanic happens here
-
-	if (cpart->flags > 0) {
-		*colb = 255;
-		*colr = 0;
-		*colg = 0;
+	// Mimic ctype color
+	if (cpart->ctype) {
+		*colr = PIXR(ren->sim->elements[cpart->ctype].Colour);
+		*colg = PIXG(ren->sim->elements[cpart->ctype].Colour);
+		*colb = PIXB(ren->sim->elements[cpart->ctype].Colour);
 	}
+
+
 	if (cpart->tmp == 1) {
 		*colb = 255;
 		*colr = 255;

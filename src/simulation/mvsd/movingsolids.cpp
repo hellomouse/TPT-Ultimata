@@ -13,7 +13,7 @@ MOVINGSOLID::MVSDGroup::MVSDGroup() {
 
 }
 
-MOVINGSOLID::MVSDGroup::MVSDGroup(const std::list<int> &particles, int type, int id) {
+MOVINGSOLID::MVSDGroup::MVSDGroup(const std::vector<int> &particles, int type, int id) {
     particle_ids = particles;
     vx = vy = fx = fy = 0.0f;
     state_id = id;
@@ -26,13 +26,15 @@ void MOVINGSOLID::MVSDGroup::calc_center(Particle *parts) {
     if (particle_ids.size() == 0)
         return;
 
-    int sumx = 0, sumy = 0, count = 0;
+    int sumx = 0, sumy = 0, count = 0, index = 0;
     for (auto itr = particle_ids.begin(); itr != particle_ids.end(); ++itr) {
+        // Speed up calculation: for large solids only consider every 3rd particle
+        ++index;
+        if (particle_ids.size() > 10 && index % 2 == 0)
+            continue;
+
         sumx += (int)(parts[*itr].x + 0.5);
         sumy += (int)(parts[*itr].y + 0.5);
-
-        // Speed up calculation: for large solids only consider every 3rd particle
-        if (particle_ids.size() > 10 && count % 3 == 0) ++itr;
         count++;
     }
 
@@ -100,8 +102,8 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     int fake_vx, fake_vy; // -1, 0, or 1 representing direction of travel
     get_fake_velocity(fake_vx, fake_vy);
 
-    std::list<MVSDGroup*> moving_solids_to_bounce;
-    
+    std::vector<MVSDGroup*> moving_solids_to_bounce;
+
 
     for (auto i = collisions.begin(); i != collisions.end(); ++i) {
         /**
@@ -146,28 +148,32 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             // Update net torque
         }
 
-        // Collision with static object: dampen the velocity
-        if (i->type == STATIC) {
-
-        }
-
         // Collision with another moving solid
         // Determine if we should deflect it
-        else if (i->type == MOVING && velocity_is_fast) {
+        if (i->type == MOVING && velocity_is_fast) {
             MVSDGroup *other_solid = &solids[parts[ID(pmap[i->cy][i->cx])].tmp2];
             if (!(other_solid->vx || other_solid->vy)) {
                 moving_solids_to_bounce.push_back(other_solid);
             }
         }
+
+        // Collision with powder
+        else if (i->type == NONSTATIC) {
+            r = ID(pmap[i->cy][i->cx]);
+            if (parts[r].type == ptype) continue;
+
+            parts[r].vx += vx * 2;
+            parts[r].vy += vy * 2;
+        }
     }
 
     // To prevent phasing through solids we negate solids that should
-    // be stopped (ie resting on a surface). Every 100 frames we
+    // be stopped (ie resting on a surface). Every 10 frames we
     // randomly impart a repeling velocity from the direction of objects
     // it collided with (DO NOT CHANGE THE MAGIC CONSTANTS BELOW)
     // to avoid particles being "stuck" inside one another
     if (should_freeze) {
-        if (sim->timer % 100 == 0) { 
+        if (sim->timer % 10 == 0) { 
             vx = total_repel_x / 15.0f / collisions.size();
             vy = total_repel_y / 15.0f / collisions.size();
         } else {
@@ -205,11 +211,14 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // Update all individual particles
     // ---------------------------------------------
     auto i = particle_ids.begin();
+    bool particle_removed = false;
+
     while (i != particle_ids.end()) {
         // Particle no longer exists, delete it
-        while (parts[*i].type != ptype || parts[*i].tmp2 != state_id) {
+        if (parts[*i].type != ptype || parts[*i].tmp2 != state_id) {
             i = particle_ids.erase(i);
-            if (i == particle_ids.end()) break;
+            particle_removed = true;
+            continue;
         }
         
         int px = parts[*i].x;
@@ -222,10 +231,17 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         else
             parts[*i].tmp = 0;
 
-        if (usedx) parts[*i].x += dx;
-        else parts[*i].x += vx;
-        if (usedy) parts[*i].y += dy;
-        else parts[*i].y += vy;
+        // If dx or dy is enabled that means the particle will
+        // "snap" to a new location (ie when velocity is fast and
+        // causes phasing)
+        if (usedx)
+            parts[*i].x += dx;
+        else
+            parts[*i].x += vx;
+        if (usedy)
+            parts[*i].y += dy;
+        else
+            parts[*i].y += vy;
 
         // Warns about rubberbanding debug TODO
         if (abs(px - parts[*i].x) + abs(py - parts[*i].y) > 50) {
@@ -234,7 +250,14 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         }
         
         if (i != particle_ids.end()) ++i;
-        // ++i;
+    }
+
+    // Trigger recalculation of groups if particles were removed
+    // In case, for example, solid was cut
+    if (particle_removed && particle_ids.size() > 0) {
+        parts[particle_ids[0]].flags = 1;
+        parts[particle_ids[0]].pavg[0] = vx;
+        parts[particle_ids[0]].pavg[1] = vy;
     }
 
     // We can approximate the center of gravity update
@@ -281,7 +304,7 @@ int get_new_state() {
 // Floodfill creation
 // Helper to floodfill
 void floodfill_helper(Particle *parts, int x, int y, int pmap[YRES][XRES], int state_id,
-        std::list<int> &to_add_id, int &sumx, int &sumy, int &count, int type=PT_MVSD) {
+        std::vector<int> &to_add_id, int &sumx, int &sumy, int &count, int type=PT_MVSD) {
     if (x < 0 || y < 0 || x > XRES || y > YRES)
         return;
 
@@ -293,6 +316,9 @@ void floodfill_helper(Particle *parts, int x, int y, int pmap[YRES][XRES], int s
     parts[ID(pmap[y][x])].tmp2 = state_id;
     to_add_id.push_back(ID(pmap[y][x]));
     
+    if (count >= MAX_SOLID_SIZE) // Solids larger than this cause stack overflow lol
+        return;
+
     ++count;
     sumx += (int)(parts[ID(pmap[y][x])].x + 0.5);
     sumy += (int)(parts[ID(pmap[y][x])].y + 0.5);
@@ -306,13 +332,15 @@ void floodfill_helper(Particle *parts, int x, int y, int pmap[YRES][XRES], int s
 
 void create_moving_solid(Particle *parts, int pmap[YRES][XRES], int i, int type) {
     const int state_id = get_new_state();
-    std::list<int> particle_ids;
+    std::vector<int> particle_ids;
 
     int sumx, sumy, n;
     sumx = sumy = n = 0;
 
     floodfill_helper(parts, (int)(parts[i].x + 0.5), (int)(parts[i].y + 0.5), pmap, state_id, particle_ids,
         sumx, sumy, n, type);
+    if (n <= 0) return; // We found nothing, can occur when stamps trigger a creation
+    
     solids[state_id] = MVSDGroup(particle_ids, type, state_id);
     solids[state_id].assign_center(sumx / n, sumy / n);
 }

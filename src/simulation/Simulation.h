@@ -25,6 +25,7 @@ class SimulationSample;
 struct matrix2d;
 struct vector2d;
 
+class GameModel;
 class Simulation;
 class Renderer;
 class Gravity;
@@ -222,6 +223,7 @@ public:
 	// These don't really belong anywhere at the moment, so go here for loop edge mode
 	static int remainder_p(int x, int y);
 	static float remainder_p(float x, float y);
+	GameModel *model = nullptr;
 
 	String ElementResolve(int type, int ctype);
 	String BasicParticleInfo(Particle const &sample_part);

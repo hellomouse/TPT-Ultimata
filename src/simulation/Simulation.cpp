@@ -33,6 +33,7 @@
 
 #include "simulation/quantum/quantum.h"
 #include "simulation/mvsd/movingsolids.h"
+#include "gui/game/GameModel.h"
 
 #ifdef LUACONSOLE
 #include "lua/LuaScriptInterface.h"
@@ -3160,6 +3161,9 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 
 	if (p == -2)
 	{
+		if (t == PT_MVSD && model)
+			model->SetPaused(true);
+
 		if (pmap[y][x])
 		{
 			int drawOn = TYP(pmap[y][x]);
@@ -3418,12 +3422,10 @@ void Simulation::UpdateParticles(int start, int end)
 		// Remove moving solid states that have no particles
 		if (itr->second.particles() == 0)
 			itr = MOVINGSOLID::solids.erase(itr);
-		else
+		else {
 			itr->second.update(parts, pmap, this);
-
-		// Don't inc if at end this causes crash
-		if (itr != MOVINGSOLID::solids.end())
-			++itr;
+			itr++;
+		}
 	}
 
 	//the main particle loop function, goes over all particles.
@@ -4124,7 +4126,7 @@ killed:
 			{
 				if (mv > SIM_MAXVELOCITY)
 				{
-					https://www.element14.com/community/community/raspberry-pi?src=raspberrypiparts[i].vx *= SIM_MAXVELOCITY/mv;
+					parts[i].vx *= SIM_MAXVELOCITY/mv;
 					parts[i].vy *= SIM_MAXVELOCITY/mv;
 					mv = SIM_MAXVELOCITY;
 				}

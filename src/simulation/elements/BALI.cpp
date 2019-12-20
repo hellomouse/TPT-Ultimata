@@ -1,8 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include <cmath>
 
-// debugging
-#include <iostream>
 
 // Ball lightning
 // Invisible until it charges up with energy and glows a brilliant white (Depends on how much it was charged)
@@ -28,8 +26,8 @@ namespace BALI_DATA {
 		if (life < 380) return;
 		for (unsigned int i = 0; i < 7; ++i) {
 			if (life > wavelengths[i][0]) continue;
-			
-			lifediff = wavelengths[i+1][0] - wavelengths[i][0];
+
+			lifediff = wavelengths[i + 1][0] - wavelengths[i][0];
 			lifediff /= (float)wavelengths[i][0];
 			colr = (int)((wavelengths[i + 1][1] * lifediff) + (wavelengths[i][1] * (1 - lifediff)));
 			colg = (int)((wavelengths[i + 1][2] * lifediff) + (wavelengths[i][2] * (1 - lifediff)));
@@ -50,22 +48,29 @@ Element_BALI::Element_BALI()
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
 
-	Advection = 0.0f;
-	AirDrag = 0.00f * CFDS;
-	AirLoss = 0.90f;
-	Loss = 0.00f;
+	Advection = -0.7f;
+	AirDrag = -0.01f * CFDS;
+	AirLoss = 0.96f;
+	Loss = 0.5f;
 	Collision = 0.0f;
 	Gravity = 0.0f;
 	Diffusion = 0.00f;
 	HotAir = 0.000f * CFDS;
-	Falldown = 0;
+	Falldown = 1;
+
+	Flammable = 0;
+	Explosive = 0;
+	Meltable = 0;
+	Hardness = 30;
+
+	Weight = 100;
 
 	Flammable = 0;
 	Explosive = 0;
 	Meltable = 1;
 	Hardness = 1;
 
-	Weight = 100;
+	Weight = 1;
 
 	HeatConduct = 251;
 	Description = "Ball Lightning. Actually a macroelectron";
@@ -82,18 +87,36 @@ Element_BALI::Element_BALI()
 int Element_BALI::update(UPDATE_FUNC_ARGS)
 {
 	int r, rx, ry, id;
+	float randInt = (float) rand() / 100000;
+	if (parts[i].life >= 0 && randInt < 0.001) {
+		for (rx = -3; rx <= 3; rx++)
+			for (ry = -3; ry <= 3; ry++)
+				if (BOUNDS_CHECK && (rx || ry)) {
+					r = pmap[y + ry][x + rx];
+					if (!r) continue;
+					if (sim->elements[ID(r)].Properties & PROP_CONDUCTS) {
+						parts[ID(r)].life = 4;
+						parts[ID(r)].ctype = ID(r);
+						sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
+					}
+					else {
+						sim->create_part(-3, x, y, PT_LIGH);
+					}
+				}
+		return 0;
+	}
 
 	for (rx = -1; rx <= 1; rx++)
-	for (ry = -1; ry <= 1; ry++)
-		if (BOUNDS_CHECK && (rx || ry)) {
-			r = pmap[y + ry][x + rx];
-			if (!r) continue;
-			id = ID(r);
+		for (ry = -1; ry <= 1; ry++)
+			if (BOUNDS_CHECK && (rx || ry)) {
+				r = pmap[y + ry][x + rx];
+				if (!r) continue;
+				id = ID(r);
 
-			if (TYP(r) == PT_SPRK) { 
-				parts[i].life++;
+				if (TYP(r) == PT_SPRK || TYP(r) == PT_LIGH) {
+					parts[i].life++;
+				}
 			}
-		}
 
 	return 0;
 }
@@ -105,6 +128,7 @@ int Element_BALI::graphics(GRAPHICS_FUNC_ARGS)
 	// return 1 if nothing dymanic happens here
 	*colr = *colg = *colb = 0;
 	*cola = 255; // Black
+
 
 	BALI_DATA::findBoundary(cpart->life, *colr, *colg, *colb);
 
