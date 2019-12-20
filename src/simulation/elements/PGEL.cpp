@@ -70,13 +70,16 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 				}
 
 				// Melt when too hot
-				if (parts[i].temp > 7000.0f)
+				if (parts[i].temp > 7000.0f) {
 					sim->part_change_type(i, parts[i].x, parts[i].y, PT_LAVA);
+					return 0;
+				}
 
 				// Washing away with water
 				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW) {
 					parts[i].tmp = 0;
 					sim->part_change_type(i, parts[i].x, parts[i].y, parts[i].ctype);
+					return 0;
 				}
 
 				// Stain with the gel. Basically, don't stain any of the elements below

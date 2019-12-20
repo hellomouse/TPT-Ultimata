@@ -22,12 +22,11 @@ namespace MVSD {
 Element_MVSD::Element_MVSD() {
 	Identifier = "DEFAULT_PT_MVSD";
 	Name = "MVSD";
-	Colour = PIXPACK(0xFF0000);
+	Colour = PIXPACK(0xDB3030);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
 
-	DefaultProperties.ctype = PT_METL;
 	HeatConduct = 255;
 	Weight = 100;
 	Description = "Moving Solid. Mimics its ctype.";
