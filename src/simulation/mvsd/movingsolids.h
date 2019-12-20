@@ -45,6 +45,7 @@ public:
     void add_collision(Collision c) { collisions.push_back(c); }
     void flag_overlap() { another_particle_overlap = true; }
     void should_impact_pressure(bool val) { should_pressure_on_impact = val; }
+    void do_big_bounce() { big_bounce = true; }
     void update_delta(int dx_, int dy_) {
         if (abs(dx_) < abs(dx) || !usedx) {
             usedx = true;
@@ -81,6 +82,7 @@ private:
     unsigned int previous_collision_size = 0;
     bool should_pressure_on_impact = false; // Make pressure on impact?
     bool another_particle_overlap = false; // Is the MVSD phased into another particle?
+    bool big_bounce = false; // Did it hit repulsion gel?
 
     // Collision handling, saves where the solid has collided with other blocks
     std::vector<Collision> collisions;

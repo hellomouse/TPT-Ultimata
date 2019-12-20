@@ -1,6 +1,6 @@
 napalm sticky
 
-
+Readd FREZ from my mod
 
 ball lightning
 
@@ -43,7 +43,6 @@ torque can be approximated by taking a grid sample of solids across the solid
 - grid should start at a particle in the solid to guarente at least 1 sample
 
 
-moving solids sometimes segfault nani the fuck
 
 wiki: if tmp > 0 then it will NOT pressure
 
