@@ -3423,7 +3423,11 @@ void Simulation::UpdateParticles(int start, int end)
 		if (itr->second.particles() == 0)
 			itr = MOVINGSOLID::solids.erase(itr);
 		else {
-			itr->second.update(parts, pmap, this);
+			// Stasised moving solids don't update
+			if (!(bmap[itr->second.getCY() / CELL][itr->second.getCX() / CELL] == WL_STASIS &&
+				emap[itr->second.getCY() / CELL][itr->second.getCX() / CELL] < 8)) {
+				itr->second.update(parts, pmap, this);
+			}
 			itr++;
 		}
 	}

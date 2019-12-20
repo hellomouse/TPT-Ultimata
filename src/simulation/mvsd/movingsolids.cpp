@@ -30,7 +30,7 @@ void MOVINGSOLID::MVSDGroup::calc_center(Particle *parts) {
     for (auto itr = particle_ids.begin(); itr != particle_ids.end(); ++itr) {
         // Speed up calculation: for large solids only consider every 3rd particle
         ++index;
-        if (particle_ids.size() > 10 && index % 2 == 0)
+        if (particle_ids.size() > BIG_SOLID && index % 2 == 0)
             continue;
 
         sumx += (int)(parts[*itr].x + 0.5);
@@ -125,25 +125,35 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
             continue;
 
         int r = pmap[testy][testx];
+        MVSDGroup *other_solid = &solids[parts[ID(pmap[i->cy][i->cx])].tmp2];
+
         if ((i->cx - i->px == fake_vx && i->cy - i->py == fake_vy) || 
             (r && (TYP(r) != ptype || parts[ID(r)].tmp2 != state_id))) {
+           
+            bool not_other_is_small_mvsd = (i->type != MOVING || other_solid->particles() > BIG_SOLID);
+            bool other_mvsd_similar_velocity =
+                i->type == MOVING && is_same_sign(vx, other_solid->vx) && is_same_sign(vy, other_solid->vy);
 
             // If we're approaching the other object at "high speed" then bounce
-            if (velocity_is_fast)
+            // Don't bounce if other moving solid is tiny or moving in the same direction
+            if (velocity_is_fast && not_other_is_small_mvsd && !other_mvsd_similar_velocity) {
                 should_bounce = true;
+            }
 
             // Since it's a collision and if the solid continues on its current velocity
             // it will intersect another particle we mark that it should stop (since it's
             // not bouncing)
-            else if (!should_bounce) {
+            else if (!should_bounce && not_other_is_small_mvsd) {
                 should_freeze = true;
                 total_repel_x += i->px - i->cx;
                 total_repel_y += i->py - i->cy;
             }
 
             // Update net force direction
-            deflectx -= i->cx - i->px;
-            deflecty -= i->cy - i->py;
+            if (!other_mvsd_similar_velocity) {
+                deflectx -= i->cx - i->px;
+                deflecty -= i->cy - i->py;
+            }
 
             // Update net torque
         }
@@ -151,7 +161,6 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
         // Collision with another moving solid
         // Determine if we should deflect it
         if (i->type == MOVING && velocity_is_fast) {
-            MVSDGroup *other_solid = &solids[parts[ID(pmap[i->cy][i->cx])].tmp2];
             if (!(other_solid->vx || other_solid->vy)) {
                 moving_solids_to_bounce.push_back(other_solid);
             }
@@ -168,12 +177,13 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     }
 
     // To prevent phasing through solids we negate solids that should
-    // be stopped (ie resting on a surface). Every 10 frames we
+    // be stopped (ie resting on a surface). Every 50 frames we
     // randomly impart a repeling velocity from the direction of objects
     // it collided with (DO NOT CHANGE THE MAGIC CONSTANTS BELOW)
     // to avoid particles being "stuck" inside one another
+    // (We also apply this repeling force during a force change)
     if (should_freeze) {
-        if (sim->timer % 10 == 0) { 
+        if (sim->timer % 50 == 0 || fx != pfx || fy != pfy || another_particle_overlap) { 
             vx = total_repel_x / 15.0f / collisions.size();
             vy = total_repel_y / 15.0f / collisions.size();
         } else {
@@ -264,7 +274,7 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // However the below applied value is not 100% accurate
     // due to rounding error so we have to recalculate
     // every couple of frames to avoid drift. 
-    if (sim->timer % 10 == 0) { //  || (collisions.size() > 0 && previous_collision_size != collisions.size())
+    if (sim->timer % 10 == 0) {
         calc_center(parts);
     } else {
         cx = (int)(cx + vx + 0.5);
@@ -277,9 +287,11 @@ void MOVINGSOLID::MVSDGroup::update(Particle *parts, int pmap[YRES][XRES], Simul
     // ---------------------------------------------
     dx = dy = 100;
     usedx = false, usedy = false;
+    another_particle_overlap = false;
     previous_collision_size = collisions.size();
     collisions.clear();
 
+    pfx = fx; pfy = fy;
     fx = fy = 0.0;
     calc_forces(parts, pmap, sim);
 }

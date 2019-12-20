@@ -18,6 +18,7 @@ const int MOVING = 2;
 
 const float MAX_VELOCITY = 15.0f;
 const int MAX_SOLID_SIZE = 17176; // Should be no larger than 17176 or it will stack overflow on large solids
+const int BIG_SOLID = 10; // Min size for a moving solid to do certain checks, leave it small (<20)
 
 // A collision point
 class Collision {
@@ -39,6 +40,7 @@ public:
     void calc_center(Particle *parts);
     void assign_center(int cx, int cy);
     void add_collision(Collision c) { collisions.push_back(c); }
+    void flag_overlap() { another_particle_overlap = true; }
     void update_delta(int dx_, int dy_) {
         if (abs(dx_) < abs(dx) || !usedx) {
             usedx = true;
@@ -49,6 +51,7 @@ public:
             dy = dy_;
         }
     }
+    
     void set_velocity(float vx_, float vy_) {
         vx = vx_; vy = vy_;
     }
@@ -62,14 +65,17 @@ public:
 
     float getVX() { return vx; }
     float getVY() { return vy; }
+    int getCX() { return cx; }
+    int getCY() { return cy; }
     int stateID() { return state_id; }
     int particles() { return particle_ids.size(); }
 private:
     std::vector<int> particle_ids;
     int ptype, state_id, cx, cy, dx, dy;
     bool usedx = false, usedy = false;
-    float vx, vy, fx, fy;
+    float vx, vy, fx, fy, pfx, pfy;
     int previous_collision_size = 0;
+    bool another_particle_overlap = false; // Is the MVSD phased into another particle?
 
     // Collision handling, saves where the solid has collided with other blocks
     std::vector<Collision> collisions;

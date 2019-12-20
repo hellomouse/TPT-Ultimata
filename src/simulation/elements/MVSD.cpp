@@ -29,7 +29,7 @@ Element_MVSD::Element_MVSD() {
 
 	HeatConduct = 255;
 	Weight = 100;
-	Description = "Moving Solid.";
+	Description = "Moving Solid. Mimics its ctype.";
 
 	Properties = TYPE_SOLID;
 
@@ -73,55 +73,93 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 		return 0;
 	}
 
-
 	/* Ctype is not a solid */
 	if (!(sim->elements[parts[i].ctype].Properties & TYPE_SOLID))
 		parts[i].ctype = 0;
 
 	/* Basic ctype mimicing */
 	if (parts[i].ctype) {
-		// Melt if ctype allows it
-		if (sim->elements[parts[i].ctype].HighTemperatureTransition != NT
-				&& parts[i].temp > sim->elements[parts[i].ctype].HighTemperature) {
-			int temp = sim->create_part(-3, x, y, sim->elements[parts[i].ctype].HighTemperatureTransition);
-			parts[temp].ctype = parts[i].ctype;
-			parts[temp].temp = parts[i].temp;
-			parts[temp].vx = MOVINGSOLID::solids[parts[i].tmp2].getVX();
-			parts[temp].vy = MOVINGSOLID::solids[parts[i].tmp2].getVY();
-			sim->kill_part(i);
+		// Flammability mimic
+		if ((sim->elements[parts[i].ctype].Explosive & 2) && sim->pv[y / CELL][x / CELL] > 2.5f) {
+			parts[i].life = RNG::Ref().between(180, 259);
+			parts[i].temp = restrict_flt(sim->elements[PT_FIRE].DefaultProperties.temp + (sim->elements[parts[i].ctype].Flammable / 2), MIN_TEMP, MAX_TEMP);
+			sim->part_change_type(i, x, y, PT_FIRE);
+			sim->pv[y / CELL][x / CELL] += 0.25f * CFDS;
 			return 0;
 		}
 
+		int change_type = -1;
+		bool change_ctype = false;
+
+		// Melt if ctype allows it
+		if (sim->elements[parts[i].ctype].HighTemperatureTransition != NT
+				&& parts[i].temp > sim->elements[parts[i].ctype].HighTemperature) {
+			change_type = sim->elements[parts[i].ctype].HighTemperatureTransition;
+			change_ctype = true;
+		}
+
 		// Shatter depending on pressure transition
+		else if (sim->elements[parts[i].ctype].HighPressureTransition != NT
+				&& -1 < sim->elements[parts[i].ctype].HighPressure
+				&& sim->pv[y/CELL][x/CELL] > sim->elements[parts[i].ctype].HighPressure) {
+			change_type = sim->elements[parts[i].ctype].HighPressureTransition;
+		}
+		else if (sim->elements[parts[i].ctype].LowPressureTransition != NT
+				&& -1 < sim->elements[parts[i].ctype].LowPressure
+				&& sim->pv[y/CELL][x/CELL] < sim->elements[parts[i].ctype].LowPressure) {
+			change_type = sim->elements[parts[i].ctype].LowPressureTransition;
+		}
+
+		// We have to change into something
+		if (change_type > -1) {
+			// Ice transitions are weird
+			if (parts[i].ctype == PT_ICEI)
+				change_type = PT_ICEI;
+
+			int temp = sim->create_part(-3, x, y, change_type);
+
+			// Ice for some reason doesn't default ctype to water
+			if (parts[i].ctype == PT_ICEI)
+				parts[temp].ctype = PT_WATR;
+			else if (change_ctype)
+				parts[temp].ctype = parts[i].ctype;
+
+			parts[temp].temp = parts[i].temp;
+			if (!(sim->elements[change_type].Properties & TYPE_SOLID)) {
+				parts[temp].vx = MOVINGSOLID::solids[parts[i].tmp2].getVX();
+				parts[temp].vy = MOVINGSOLID::solids[parts[i].tmp2].getVY();
+			}
+			sim->kill_part(i);
+			return 0;
+		}
 	}
-
-
 
 	int r, rx, ry;
 
-	// TODO remove
-	if (parts[i].tmp == 3) parts[i].tmp = 0;
-
-
-
-
-
+	if (sim->pmap_count[y][x] > 1)
+		MOVINGSOLID::solids[parts[i].tmp2].flag_overlap();
 
 	// Check surrounding particles. These are "touching"
 	// collisions, as in the solid is flush with another particle
 	for (rx=-1; rx<2; rx++)
 		for (ry=-1; ry<2; ry++)
-			if (BOUNDS_CHECK && (rx || ry)) {
+			if (BOUNDS_CHECK) {
 				// Allow wall collisions
 				if (sim->IsWallBlocking(x + rx, y + ry, PT_MVSD))
 					MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 						MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::STATIC, px, py, x + rx, y + ry));
 
 				r = pmap[y+ry][x+rx];
-				if (!r) {
-					continue;
-				}
+				if (!r) continue;
 				int rt = TYP(r);
+
+				// Flammability mimic
+				if ((sim->elements[parts[i].ctype].Explosive & 2) && rt == PT_FIRE) {
+					parts[i].life = RNG::Ref().between(180, 259);
+					parts[i].temp = restrict_flt(sim->elements[PT_FIRE].DefaultProperties.temp + (sim->elements[parts[i].ctype].Flammable / 2), MIN_TEMP, MAX_TEMP);
+					sim->part_change_type(i, x, y, PT_FIRE);
+					sim->pv[y / CELL][x / CELL] += 0.25f * CFDS;
+				}
 
 				// Collision with another moving solid
 				if (rt == PT_MVSD && parts[ID(r)].tmp2 != parts[i].tmp2) {
@@ -129,8 +167,8 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 						MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::MOVING, px, py, x + rx, y + ry));
 				}
 
+				// General collision
 				else if (rt != PT_MVSD) {
-					parts[i].tmp = 3; // TODO deco
 					if (sim->elements[rt].Properties & TYPE_SOLID)
 						MOVINGSOLID::solids[parts[i].tmp2].add_collision(
 							MOVINGSOLID::Collision(x + rx, y + ry, MOVINGSOLID::STATIC, px, py, x + rx, y + ry));
@@ -211,6 +249,15 @@ int Element_MVSD::graphics(GRAPHICS_FUNC_ARGS) {
 		*colr = PIXR(ren->sim->elements[cpart->ctype].Colour);
 		*colg = PIXG(ren->sim->elements[cpart->ctype].Colour);
 		*colb = PIXB(ren->sim->elements[cpart->ctype].Colour);
+
+		// Stolen HOT_GLOW code
+		if (ren->sim->elements[cpart->ctype].Properties & PROP_HOT_GLOW && cpart->temp > (ren->sim->elements[cpart->ctype].HighTemperature - 800.0f)) {
+			float gradv = 3.1415 / (2 * ren->sim->elements[cpart->ctype].HighTemperature - ren->sim->elements[cpart->ctype].HighTemperature + 800.0f);
+			float caddress = (cpart->temp > ren->sim->elements[cpart->ctype].HighTemperature) ? ren->sim->elements[cpart->ctype].HighTemperature - (ren->sim->elements[cpart->ctype].HighTemperature - 800.0f) : cpart->temp - (ren->sim->elements[cpart->ctype].HighTemperature - 800.0f);
+			*colr += sin(gradv * caddress) * 226;
+			*colg += sin(gradv * caddress * 4.55 + 3.14) * 34;
+			*colb += sin(gradv * caddress * 2.22 + 3.14) * 64;
+		}
 	}
 
 

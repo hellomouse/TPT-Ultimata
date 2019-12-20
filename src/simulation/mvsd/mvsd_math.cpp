@@ -37,3 +37,7 @@ float fast_atan2(float y, float x) {
     }
     return result;
 }
+
+bool is_same_sign(float a, float b) {
+    return (a < 0) == (b < 0);
+}

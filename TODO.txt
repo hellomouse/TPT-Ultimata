@@ -26,6 +26,10 @@ once fusion cycle eats up it becomes either red giant or redsupergiant
 red giant becomes white dwarf or maybe supernova
 supergiant goes supernova and collapses either into black hole or neutron star
 
+mass can be sucked away by gravity
+
+neutrotoxin!
+
 
 
 force field generator 
@@ -34,31 +38,12 @@ with rings moving outward
 
 MOVING SOLIDS 
 --------------------------
-if moving solid has same forces as previous frame maybe don't update velocity
-
-moving solids collide on invisible wall map
-
-make stasis wall work with MVSD
-
-- don't freeze on powder but repel away from? idk same for liquids
-- or tell users not to put stuff inside of moving solids
-
-- mimic particle properties 
-
-
-
-
-
+clean up debug code
 
 2.5 torque
 3. rotation
 torque can be approximated by taking a grid sample of solids across the solid
 - grid should start at a particle in the solid to guarente at least 1 sample
-
-
-
-
-- border particles should check for collision, inner particles do not to save computation
 
 
 
