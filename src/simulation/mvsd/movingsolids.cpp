@@ -77,7 +77,7 @@ void MOVINGSOLID::MVSDGroup::calc_forces(Particle *parts, int pmap[YRES][XRES], 
     fy += MVSD_AIR * sim->vy[cy / CELL][cx / CELL];
 
     // Stasis field (Yes the checks are needed)
-    if (cy < YRES / STASIS_CELL && cx < XRES / STASIS_CELL && sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL] != 0) {
+    if (cy < YRES && cx < XRES && sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL] != 0) {
         fx += (sim->stasis->vx[cy / STASIS_CELL][cx / STASIS_CELL] - vx) * sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL];
         fy += (sim->stasis->vy[cy / STASIS_CELL][cx / STASIS_CELL] - vy) * sim->stasis->strength[cy/STASIS_CELL][cx/STASIS_CELL];
     }

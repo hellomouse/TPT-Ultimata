@@ -26,10 +26,6 @@ mass can be sucked away by gravity
 
 
 
-display, tmp and life row duplicated
-- also show particle ID
-
-
 
 force field generator 
 with rings moving outward

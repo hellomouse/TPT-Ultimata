@@ -27,6 +27,7 @@ Element_MVSD::Element_MVSD() {
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
 
+	DefaultProperties.ctype = PT_METL;
 	HeatConduct = 255;
 	Weight = 100;
 	Description = "Moving Solid. Mimics its ctype.";

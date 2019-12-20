@@ -75,6 +75,7 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 
 				// Washing away with water
 				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW) {
+					parts[i].tmp = 0;
 					sim->part_change_type(i, parts[i].x, parts[i].y, parts[i].ctype);
 				}
 
