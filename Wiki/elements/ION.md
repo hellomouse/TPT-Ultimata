@@ -14,3 +14,5 @@ IONs behave like generic energy particles, with high diffusion and a certain "st
 ## Technical
 #### Properties
 **tmp2:** Saves the quantum state ID for the ION. The raw quantum state is inaccessible. Changing this value to an invalid state (0 or non-existent state) will cause any quantum states the ION is in to decohere and a new quantum state to be assigned to the ION.
+
+**flags:** If > 0 then a quantum state was assigned. You should not modify this value manually.

@@ -2421,51 +2421,38 @@ void GameView::OnDraw()
 		g->fillrect(XRES-20-textWidth, 12, textWidth+8, 15, 0, 0, 0, alpha*0.5f);
 		g->drawtext(XRES-16-textWidth, 16, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
 
-		// Second line where it displays the life and stuff
+		// 3rd line where it displays the life and stuff (Yeah it's out of order)
 		StringBuilder sampleInfo2;
 		sampleInfo2 << Format::Precision(2);
 		if (sample.particle.type) {
 			if (showDebug) {
-				sampleInfo2 << "Life: " << Format::Fixed(sample.particle.life);
-				sampleInfo2 << ", Tmp: " << Format::Fixed(sample.particle.tmp);
-				sampleInfo2 << ", Tmp2: " << Format::Fixed(sample.particle.tmp2);
+				sampleInfo2 << "Tmp2: " << Format::Fixed(sample.particle.tmp2);
 				sampleInfo2 << ", DColor: " << Format::Fixed(sample.particle.dcolour);
+				sampleInfo2 << ", Flags: " << Format::Fixed(sample.particle.flags);
+				sampleInfo2 << ", Pavg0: " << Format::Fixed(sample.particle.pavg[0]);
+				sampleInfo2 << ", Pavg1: " << Format::Fixed(sample.particle.pavg[1]);
 			}
 		}
-		else if (showDebug) {
-			sampleInfo2 << "Life: 0";
-			sampleInfo2 << ", Tmp: 0";
-			sampleInfo2 << ", Tmp2: 0";
-			sampleInfo2 << ", DColor: 0";
-		}
-		int textWidth3 = Graphics::textwidth(sampleInfo2.Build());
-		g->fillrect(XRES - 20 - textWidth3, 27, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
-		g->drawtext(XRES - 16 - textWidth3, 30, sampleInfo2.Build(), 255, 255, 255, alpha*0.75f);
 
-		// Third line where it displays the pvag and stuff
+		int textWidth3 = Graphics::textwidth(sampleInfo2.Build());
+		g->fillrect(XRES - 20 - textWidth3, 42, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
+		g->drawtext(XRES - 16 - textWidth3, 44, sampleInfo2.Build(), 255, 255, 255, alpha*0.75f);
+
+		// 4th line where it displays the pvag and stuff
 		StringBuilder sampleInfo3;
 		sampleInfo3 << Format::Precision(2);
 		if (sample.particle.type) {
 			if (showDebug) {
-				sampleInfo3 << "Flags: " << Format::Fixed(sample.particle.flags);
-				sampleInfo3 << ", Pavg0: " << Format::Fixed(sample.particle.pavg[0]);
-				sampleInfo3 << ", Pavg1: " << Format::Fixed(sample.particle.pavg[1]);
+				sampleInfo3 << "VX: " << Format::Fixed(sample.particle.vx);
+				sampleInfo3 << ", VY: " << Format::Fixed(sample.particle.vy);
 				sampleInfo3 << ", Temp: " << Format::Fixed(sample.particle.temp) << " K";
 				// sampleInfo3 << ", Temp: " << Format::Fixed(5) << (sample.particle.temp - 273.15f) * 9.0f / 5.0f + 32.0 << " F";
-				sampleInfo3 << ", Id: " << Format::Fixed(sample.particle.type);
 			}
 		}
-		else if (showDebug) {
-			sampleInfo3 << "Flags: 0";
-			sampleInfo3 << ", Pavg0: 0";
-			sampleInfo3 << ", Pavg0: 1";
-			sampleInfo3 << ", Id: 0";
-			sampleInfo3 << ", Temp: 0";
-			// sampleInfo3 << ", Temp: 0";
-		}
+
 		int textWidth4 = Graphics::textwidth(sampleInfo3.Build());
-		g->fillrect(XRES - 20 - textWidth4, 42, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
-		g->drawtext(XRES - 16 - textWidth4, 44, sampleInfo3.Build(), 255, 255, 255, alpha*0.75f);
+		g->fillrect(XRES - 20 - textWidth4, 56, textWidth3 + 8, 15, 0, 0, 0, alpha*0.5f);
+		g->drawtext(XRES - 16 - textWidth4, 58, sampleInfo3.Build(), 255, 255, 255, alpha*0.75f);
 
 #ifndef OGLI
 		if (wavelengthGfx)
@@ -2521,8 +2508,8 @@ void GameView::OnDraw()
 				sampleInfo << ", AHeat: " << sample.AirTemperature - 273.15f << " C";
 
 			textWidth = Graphics::textwidth(sampleInfo.Build());
-			g->fillrect(XRES-20-textWidth, 56, textWidth+8, 14, 0, 0, 0, alpha*0.5f);
-			g->drawtext(XRES-16-textWidth, 58, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
+			g->fillrect(XRES-20-textWidth, 27, textWidth+8, 14, 0, 0, 0, alpha*0.5f);
+			g->drawtext(XRES-16-textWidth, 30, sampleInfo.Build(), 255, 255, 255, alpha*0.75f);
 		}
 	}
 
