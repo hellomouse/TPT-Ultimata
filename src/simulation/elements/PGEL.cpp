@@ -70,17 +70,11 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 				}
 
 				// Melt when too hot
-				if (parts[i].temp > 10280.0f){
-					if (parts[i].tmp == 0){
-						sim->part_change_type(i, parts[i].x, parts[i].y, PT_LAVA);
-					}
-					if (parts[i].tmp == 1){
-						sim->part_change_type(i, parts[i].x, parts[i].y, PT_LAVA);
-					}
-				}
+				if (parts[i].temp > 7000.0f)
+					sim->part_change_type(i, parts[i].x, parts[i].y, PT_LAVA);
 
 				// Washing away with water
-				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW){
+				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW) {
 					sim->part_change_type(i, parts[i].x, parts[i].y, parts[i].ctype);
 				}
 
@@ -99,8 +93,10 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 				}
 
 				// Stain MVSD by changing ctype, but only in liquid form
-				else if (rt == PT_MVSD && parts[i].tmp == 0)
+				else if (rt == PT_MVSD && parts[i].tmp == 0 && parts[ID(r)].ctype != PT_PGEL) {
+					parts[ID(r)].life = parts[ID(r)].ctype;
 					parts[ID(r)].ctype = PT_PGEL;
+				}
 
 				// If we're not altering another gel particle we can apply
 				// what we need to bounce the particle

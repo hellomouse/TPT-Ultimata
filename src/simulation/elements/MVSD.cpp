@@ -46,6 +46,8 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 	 * 
 	 * If flags = 1, solid should be reconstructed (Edit was made)
 	 * 
+	 * life stores previous ctype (If it was stained by portal gel)
+	 * 
 	 * pavg[0] and pavg[1] store the solid's velocity for updating when a solid is cut
 	 * into 2 solids
 	 */
@@ -172,6 +174,10 @@ int Element_MVSD::update(UPDATE_FUNC_ARGS) {
 					sim->part_change_type(i, x, y, PT_FIRE);
 					sim->pv[y / CELL][x / CELL] += 0.25f * CFDS;
 				}
+
+				// Unstain portal gel
+				if (rt == PT_WATR || rt == PT_SLTW || rt == PT_DSTW)
+					parts[i].ctype = parts[i].life;
 
 				// Collision with another moving solid
 				if (rt == PT_MVSD && parts[ID(r)].tmp2 != parts[i].tmp2) {
