@@ -31,7 +31,7 @@ Element_NOTE::Element_NOTE()
 
 	Weight = 100;
 	HeatConduct = 0;
-	Description = "Plays a NOTE when sparked, tmp corresponds to piano key. (Earrape warning)";
+	Description = "Plays a note when sparked, tmp corresponds to piano key. (Earrape warning)";
 
 	DefaultProperties.tmp = 49; // A
 	Properties = TYPE_SOLID;
@@ -50,51 +50,25 @@ int Element_NOTE::update(UPDATE_FUNC_ARGS) {
 
 	for (rx = -1; rx < 2; rx++)
 		for (ry = -1; ry < 2; ry++)
-			if (BOUNDS_CHECK && (rx == 0 || ry == 0)) {
+			if (BOUNDS_CHECK) {
 				r = pmap[y + ry][x + rx];
 				if (!r) continue;
 				rt = TYP(r);
 
 				// Sparked, play note!
-				if (rt == PT_SPRK || rt == PT_BRAY) {
+				if (rt == PT_SPRK || ((rx == 0 || ry == 0) && rt == PT_BRAY)) {
 					parts[i].life = NOTE::LIFE_CHUNK;
 					NOTE::next_audio_device++;
-
-					// Avoid lag, don't play too many notes at same time
-					// if (NOTE::next_audio_device > NOTE::MAX_NOTES_AT_SAME_TIME)
-					//	return 0;
-
-					// If the sound for the freq already exists just play it, or construct it
-					int t = parts[i].tmp;
-					
 					
 					if (NOTE::sounds[index]) {
-						// NOTE::sounds[parts[i].tmp]->stop();
-						parts[i].life = 1231;
 						NOTE::sounds[index]->set_freq(freq);
-						// NOTE::sounds[parts[i].tmp]->play();
 					} else {
 						NOTE::sounds[index] = new Sound(freq);
 						NOTE::sounds[index]->play();
 					}
-
-					parts[i].tmp = t;
-
 					return 0;
 				}
 			}
-
-	// Decrement life
-	parts[i].life--;
-	if (parts[i].life < 0)
-		parts[i].life = 0;
-
-	// No spark, stop playing noise
-	if (parts[i].life <= 0 && NOTE::sounds[index]) {
-		// NOTE::sounds[index]->stop();
-		// delete NOTE::sounds[parts[i].tmp2];
-		// NOTE::sounds.erase(NOTE::sounds.find(parts[i].tmp2));
-	}
 
 	return 0;
 }
