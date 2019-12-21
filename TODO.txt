@@ -2,6 +2,7 @@ napalm sticky
 
 Readd FREZ from my mod
 
+
 ball lightning
 
 
@@ -51,9 +52,6 @@ flying vehicles
 
 write guide about quantum 
 have lua mod to place down quantum gates?
-QLOG multi_check unused
-quantum.cpp particl_id_index unuesed
-
 
 
 Two more particlemaps
@@ -69,14 +67,6 @@ food
 fancy black holes
 
 2 row elements?
-
-
-
-
-
-
-
-
 
 
 

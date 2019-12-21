@@ -254,7 +254,6 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 
 	/* Beam directions: tmp = 0: left, 1 = up, 2 = right, 3 = down */
 	int dir = parts[i].tmp;
-	bool multi_check = QGATE_NAME::is_multi_gate(parts[i].ctype); // Multi gate check
 
 	for (rx = -1; rx <= 1; rx++)
 		for (ry = -1; ry <= 1; ry++)

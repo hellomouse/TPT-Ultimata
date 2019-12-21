@@ -140,7 +140,6 @@ void apply_gate_raw(const matrix &gate, int state_id, const std::vector<int> &pa
 
     // Adjust gate matrix size as needed
     matrix newgate;
-    int particle_id_index = 1;
     int qstate_size = quantum_states[state_id].state.size();
 
     if (gate.size() < qstate_size) {

@@ -31,6 +31,8 @@
 #include "gui/game/DecorationTool.h"
 #include "gui/interface/Engine.h"
 
+#include "music/music.h"
+
 #include <iostream>
 
 GameModel::GameModel():
@@ -949,6 +951,10 @@ void GameModel::SetPaused(bool pauseState)
 		sim->AfterSim();
 		sim->debug_currentParticle = 0;
 		Log(logmessage, false);
+	}
+
+	for (auto i = NOTE::sounds.begin(); i != NOTE::sounds.end(); ++i) {
+		pauseState ? (*i)->stop() : (*i)->play();
 	}
 
 	sim->sys_pause = pauseState?1:0;

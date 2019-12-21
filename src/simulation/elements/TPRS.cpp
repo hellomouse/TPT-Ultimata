@@ -7,7 +7,7 @@ Element_TPRS::Element_TPRS()
 	Name = "TPRS";
 	Colour = PIXPACK(0xBA002B);
 	MenuVisible = 1;
-	MenuSection = SC_SENSOR;
+	MenuSection = SC_SPECIAL;
 	Enabled = 1;
 	
 	Advection = 0.0f;
