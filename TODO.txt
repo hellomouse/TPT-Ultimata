@@ -29,7 +29,8 @@ mass can be sucked away by gravity
 
 
 force field generator 
-with rings moving outward
+- default: realistic 
+- flag to be unrealistic
 
 
 MOVING SOLIDS 

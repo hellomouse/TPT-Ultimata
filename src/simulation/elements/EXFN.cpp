@@ -136,8 +136,7 @@ int Element_EXFN::update(UPDATE_FUNC_ARGS) {
 				id = ID(r);
 
 				if (TYP(r) == PT_SPRK) {
-					if (parts[id].ctype == PT_GOLD || parts[id].ctype == PT_TTAN)
-					{
+					if (parts[id].ctype == PT_GOLD || parts[id].ctype == PT_TTAN) {
 						PropertyValue value;
 						value.Integer = parts[id].ctype == PT_GOLD ? 10 : 0;
 						sim->flood_prop(parts[i].x, parts[i].y, offsetof(Particle, tmp2), value, StructProperty::Integer);
