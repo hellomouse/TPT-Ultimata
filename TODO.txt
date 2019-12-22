@@ -94,12 +94,12 @@ which operates using flood fill to transfer data
 -- RADR, Radar, Finds enemy particles and passes coordinates to lasers
    - Scanning range is 30 pixels or higher?
    100: TGRT, <X:10>0000000000 <Y:10>0000000000
--- NGON, Navigation
+-- NAVI, Navigation
    -- Tells the ship to go somewhere? idk
    -- Different operating modes
    Altitude Control, Stick to coordinate, Maintain distance from enemy
    101: MOVE, <direction:2>00
--- THSR, Thruster, Applies thrust to the ship body
+-- THRS, Thruster, Applies thrust to the ship body
    -- Stores direction thruster has been attached to ship
    -- Calculates by which side of the thruster is more open.
    Draws a fancy cone
