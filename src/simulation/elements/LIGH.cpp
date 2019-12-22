@@ -271,6 +271,10 @@ int Element_LIGH::contact_part(Simulation * sim, int i, int tp)
 //#TPT-Directive ElementHeader Element_LIGH static bool create_LIGH(Simulation * sim, int x, int y, int c, int temp, int life, int tmp, int tmp2, bool last)
 bool Element_LIGH::create_LIGH(Simulation * sim, int x, int y, int c, int temp, int life, int tmp, int tmp2, bool last)
 {
+	// Force fields block LIGH
+	if (x >= 0 && x < XRES && y >= 0 && y < YRES && sim->parts[ID(sim->photons[y][x])].type == PT_FFLD)
+		return true;
+
 	int p = sim->create_part(-1, x, y,c);
 	if (p != -1)
 	{
@@ -291,8 +295,6 @@ bool Element_LIGH::create_LIGH(Simulation * sim, int x, int y, int c, int temp, 
 	{
 		int r = sim->pmap[y][x];
 		if (((TYP(r)==PT_VOID || (TYP(r)==PT_PVOD && sim->parts[ID(r)].life >= 10)) && (!sim->parts[ID(r)].ctype || (sim->parts[ID(r)].ctype==c)!=(sim->parts[ID(r)].tmp&1))) || TYP(r)==PT_BHOL || TYP(r)==PT_NBHL) // VOID, FFLD, PVOD, VACU, and BHOL eat LIGH here
-			return true;
-		if (TYP(sim->photons[y][x]) == PT_FFLD)
 			return true;
 	}
 	else return true;

@@ -83,17 +83,15 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 				}
 
 				// Stain with the gel. Basically, don't stain any of the elements below
-				else if (rt != PT_BRAY && rt != PT_GEL && rt != PT_PRTI  && rt != PT_DMND && rt != PT_CLNE &&
+				else if (parts[i].tmp == 0 && rt != PT_BRAY && rt != PT_GEL && rt != PT_PRTI  && rt != PT_DMND && rt != PT_CLNE &&
 							rt != PT_BCLN  && rt != PT_PCLN &&
 							rt != PT_PRTO && !(sim->elements[rt].Properties & TYPE_LIQUID) &&
 							!(sim->elements[rt].Properties & TYPE_GAS) && rt != PT_STKM&& rt != PT_STKM2 &&
-							rt != PT_FIGH && rt != PT_PGEL && rt != PT_MVSD) {
-					if (parts[i].tmp == 0) {
-						parts[i].tmp = 1;
-						parts[ID(r)].ctype = rt;
-						sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, PT_PGEL);
-						sim->part_change_type(i, parts[i].x, parts[i].y, parts[i].ctype);
-					}
+							rt != PT_FIGH && rt != PT_PGEL && rt != PT_MVSD && rt != PT_FFLD) {
+					parts[i].tmp = 1;
+					parts[ID(r)].ctype = rt;
+					sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, PT_PGEL);
+					sim->part_change_type(i, parts[i].x, parts[i].y, parts[i].ctype);
 				}
 
 				// Stain MVSD by changing ctype, but only in liquid form

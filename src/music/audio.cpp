@@ -67,7 +67,7 @@ void Sound::SDLAudioCallback(void *data, Uint8 *buffer, int length) {
 
         // Electric synth (Causes static and popping noises during quick notes)
         multi = 1;
-        if (cback > 100) // Cut off sound after a certain amount of time
+        if (cback > SOUND_CALLBACKS_TO_STOP) // Cut off sound after a certain amount of time
             multi = 0;
         // if (cback < 10)       // 0 - 10 is attack
         //     multi = cback / 10.0f;

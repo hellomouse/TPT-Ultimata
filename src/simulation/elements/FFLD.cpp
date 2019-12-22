@@ -29,7 +29,7 @@ Element_FFLD::Element_FFLD()
 	Weight = 100;
 
 	DefaultProperties.temp = R_TEMP + 0.0f + 273.15f;
-	DefaultProperties.life = 5;
+	DefaultProperties.life = 0;
 
 	HeatConduct = 88;
 	Description = "Force field. Hidden element.";
@@ -65,7 +65,7 @@ int Element_FFLD::update(UPDATE_FUNC_ARGS)
 	 *   7: Stasis field
 	 */
 	if (parts[i].tmp2 == 4) // Repel with gravity
-		sim->gravmap[(y / CELL) * (XRES / CELL) + (x / CELL)] = 0.2f * (4);
+		sim->gravmap[(y / CELL) * (XRES / CELL) + (x / CELL)] = -3.0f;
 	else // Negate local gravity
 		sim->gravmap[(y / CELL) * (XRES / CELL) + (x / CELL)] = 0;
 	parts[i].vx = parts[i].vy = 0;
@@ -84,8 +84,13 @@ int Element_FFLD::update(UPDATE_FUNC_ARGS)
 					continue;
 				}
 
-				if (parts[i].tmp2 == 0) { // Block all
+				// Cure VIRS
+				if (TYP(r) == PT_VIRS || TYP(r) == PT_VRSG || TYP(r) == PT_VRSS)
+					parts[ID(r)].pavg[0] = 8;
 
+				if (parts[i].tmp2 == 0) { // Block all
+					parts[ID(r)].vx = parts[ID(r)].x - parts[i].x;
+					parts[ID(r)].vy = parts[ID(r)].y - parts[i].y;
 				}
 				else if (parts[i].tmp2 == 1) { // Delete ctype (or all if no ctype)
 					if (!parts[i].ctype || TYP(r) == parts[i].ctype)
@@ -96,7 +101,10 @@ int Element_FFLD::update(UPDATE_FUNC_ARGS)
 						sim->kill_part(ID(r));
 				}
 				else if (parts[i].tmp2 == 3) { // Only ctype can pass
-
+					if (TYP(r) != parts[i].ctype) {
+						parts[ID(r)].vx = parts[ID(r)].x - parts[i].x;
+						parts[ID(r)].vy = parts[ID(r)].y - parts[i].y;
+					}
 				}
 				else if (parts[i].tmp2 == 5) { // Superheat
 					parts[ID(r)].temp = 9999.0f;

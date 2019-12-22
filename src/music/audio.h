@@ -5,6 +5,8 @@
 #include <SDL_audio.h>
 #include <SDL2/SDL.h>
 
+const int SOUND_CALLBACKS_TO_STOP = 100;
+
 class Sound {
 public:
     Sound(double freq=440.0f);
