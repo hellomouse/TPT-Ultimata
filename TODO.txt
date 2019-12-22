@@ -82,13 +82,29 @@ Spaceships
 which operates using flood fill to transfer data
 - Each component is assigned an ID in network
 -- COTR, Controller
-   - Fires signal once every three frames so components can update
+   - Fires signal once every three frames so components can update and communicate
    - Stores component id's
    - Tells each component when to use the FILT network
+   - Components write data after COTR sends data. if no data is received then we can assume componenet has been destroyed
+   and remove it from the set of component id's
    - Control signals (FILT has 32 bit CTYPE)     
-     001: FIRE, <componentID>00000000, Maximum number of components that can be connected is 255
-     010: CONNECT, <particleID>0000000000000000, Component is added. Passes particle id or maybe mod of it?
-     011: ASSIGN, <particleID>0000000000000000> <componentID> 00000000, Assigns componentID
+     001: FIRE, <componentID:8>00000000, Maximum number of components that can be connected is 255
+     010: CONNECT, <particleID:16>0000000000000000, Component is added. Passes particle id or maybe mod of it?
+     011: ASSIGN, <particleID:16>0000000000000000> <componentID:8> 00000000, Assigns componentID
+-- RADR, Radar, Finds enemy particles and passes coordinates to lasers
+   - Scanning range is 30 pixels or higher?
+   100: TGRT, <X:10>0000000000 <Y:10>0000000000
+-- NGON, Navigation
+   -- Tells the ship to go somewhere? idk
+   -- Different operating modes
+   Altitude Control, Stick to coordinate, Maintain distance from enemy
+   101: MOVE, <direction:2>00
+-- THSR, Thruster, Applies thrust to the ship body
+   -- Stores direction thruster has been attached to ship
+   -- Calculates by which side of the thruster is more open.
+   Draws a fancy cone
+   -- Operating capacity depends on how much damage thruster has taken
+   
 
 
 QUANTUM STUFF THIS IS DONE IN CASE U NEED IT 
