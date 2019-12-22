@@ -2265,6 +2265,7 @@ void Simulation::clear_sim(void)
 	player2.spawnID = -1;
 	player2.rocketBoots = false;
 	player2.fan = false;
+	cybertruck_p1 = cybertruck_p2 = false;
 	//memset(pers_bg, 0, WINDOWW*YRES*PIXELSIZE);
 	//memset(fire_r, 0, sizeof(fire_r));
 	//memset(fire_g, 0, sizeof(fire_g));
@@ -2371,6 +2372,8 @@ void Simulation::init_can_move()
 		can_move[movingType][PT_STKM] = 0;
 		can_move[movingType][PT_STKM2] = 0;
 		can_move[movingType][PT_FIGH] = 0;
+		// Cybertruck shouldn't be displaced
+		can_move[movingType][PT_CYTK] = 0;
 		//INVS behaviour varies with pressure
 		can_move[movingType][PT_INVIS] = 3;
 		//stop CNCT from being displaced by other particles
@@ -3062,16 +3065,26 @@ void Simulation::kill_part(int i)//kills particle number i
 		return;
 
 	// When IONs are killed quantum states must be updated
-	auto itr = QUANTUM::quantum_states.find(parts[i].tmp2);
-	if (itr != QUANTUM::quantum_states.end()) {
-		// Reset all particles in the state
-		for (unsigned int i = 0; i < itr->second.id_order.size(); ++i) {
-			if (parts[itr->second.id_order[i]].type == PT_ION)
-				parts[itr->second.id_order[i]].flags = 0; // Recalculate quantum state
-		}
+	if (t == PT_ION) {
+		auto itr = QUANTUM::quantum_states.find(parts[i].tmp2);
+		if (itr != QUANTUM::quantum_states.end()) {
+			// Reset all particles in the state
+			for (unsigned int i = 0; i < itr->second.id_order.size(); ++i) {
+				if (parts[itr->second.id_order[i]].type == PT_ION)
+					parts[itr->second.id_order[i]].flags = 0; // Recalculate quantum state
+			}
 
-		// Delete the state
-		itr = QUANTUM::quantum_states.erase(itr);
+			// Delete the state
+			itr = QUANTUM::quantum_states.erase(itr);
+		}
+	}
+
+	// Reset cybertruck flags for p1 p2 occupied
+	if (t == PT_CYTK) {
+		if (parts[i].tmp2 == 1)
+			cybertruck_p1 = false;
+		if (parts[i].tmp2 == 2)
+			cybertruck_p2 = false;
 	}
 
 	elementCount[t]--;
@@ -3127,6 +3140,10 @@ bool Simulation::part_change_type(int i, int x, int y, int t)
 //tv = Type (PMAPBITS bits) + Var (32-PMAPBITS bits), var is usually 0
 int Simulation::create_part(int p, int x, int y, int t, int v)
 {
+	// Dont make STKM or STKM2 if inside of a cybertruck
+	if ((t == PT_STKM && cybertruck_p1) || (t == PT_STKM2 && cybertruck_p2))
+		return -1;
+
 	int i, oldType = PT_NONE;
 
 	if (x<0 || y<0 || x>=XRES || y>=YRES)
@@ -3263,6 +3280,14 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 
 	if (elements[t].ChangeType)
 		(*(elements[t].ChangeType))(this, i, x, y, oldType, t);
+
+	// FIGH Id
+	if (t == PT_FIGH)
+		fighters[parts[i].tmp].stkmID = i;
+	else if (t == PT_STKM)
+		player.stkmID = i;
+	else if (t == PT_STKM2)
+		player2.stkmID = i;
 
 	elementCount[t]++;
 	return i;
@@ -3433,11 +3458,16 @@ void Simulation::UpdateParticles(int start, int end)
 	}
 
 	//the main particle loop function, goes over all particles.
-	for (i = start; i <= end && i <= parts_lastActiveIndex; i++)
+	unsigned char update_count;
+	for (i = start; i <= end && i <= parts_lastActiveIndex; i++) {
 		if (parts[i].type)
 		{
-			t = parts[i].type;
+			// Some elements update n times per frame
+			update_loop_begin:
+			++update_count;
 
+			t = parts[i].type;
+		
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
 
@@ -4668,10 +4698,15 @@ killed:
 						}
 					}
 				}
+
+				// Some elements update n times per frame
+				if (t == PT_CYTK && update_count < 2)
+					goto update_loop_begin;
 			}
 movedone:
 			continue;
 		}
+	}
 
 	//'f' was pressed (single frame)
 	if (framerender)
@@ -5158,9 +5193,9 @@ void Simulation::BeforeSim()
 
 		// spawn STKM and STK2
 		if (!player.spwn && player.spawnID >= 0)
-			create_part(-1, (int)parts[player.spawnID].x, (int)parts[player.spawnID].y, PT_STKM);
+			player.stkmID = create_part(-1, (int)parts[player.spawnID].x, (int)parts[player.spawnID].y, PT_STKM);
 		if (!player2.spwn && player2.spawnID >= 0)
-			create_part(-1, (int)parts[player2.spawnID].x, (int)parts[player2.spawnID].y, PT_STKM2);
+			player2.stkmID = create_part(-1, (int)parts[player2.spawnID].x, (int)parts[player2.spawnID].y, PT_STKM2);
 
 		// particle update happens right after this function (called separately)
 	}

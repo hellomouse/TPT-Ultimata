@@ -32,6 +32,7 @@
 #define PROP_NOAMBHEAT		0x40000  //2^18 Don't transfer or receive heat from ambient heat.
 #define PROP_NOCTYPEDRAW	0x100000 // 2^20 When this element is drawn upon with, do not set ctype (like BCLN for CLNE)
 
+
 #define FLAG_STAGNANT	0x1
 #define FLAG_SKIPMOVE  0x2 // skip movement for one frame, only implemented for PHOT
 //#define FLAG_WATEREQUAL 0x4 //if a liquid was already checked during equalization
