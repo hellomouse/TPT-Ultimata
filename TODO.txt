@@ -76,7 +76,19 @@ fancy black holes
 
 
 
-
+Spaceships
+- Ships have a unique id and allegiance so they can battle eachother
+- Components communicate with eachother via FILT network inside the ship
+which operates using flood fill to transfer data
+- Each component is assigned an ID in network
+-- COTR, Controller
+   - Fires signal once every three frames so components can update
+   - Stores component id's
+   - Tells each component when to use the FILT network
+   - Control signals (FILT has 32 bit CTYPE)     
+     001: FIRE, <componentID>00000000, Maximum number of components that can be connected is 255
+     010: CONNECT, <particleID>0000000000000000, Component is added. Passes particle id or maybe mod of it?
+     011: ASSIGN, <particleID>0000000000000000> <componentID> 00000000, Assigns componentID
 
 
 QUANTUM STUFF THIS IS DONE IN CASE U NEED IT 
