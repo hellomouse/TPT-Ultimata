@@ -30,8 +30,6 @@ Replace EFBM for next elemeent
 
 Add SUGR and NPLM to wiki
 
-cybertruck!
-
 
 force field generator 
 - default: realistic 
@@ -49,10 +47,14 @@ torque can be approximated by taking a grid sample of solids across the solid
 
 wiki: if tmp > 0 then it will NOT pressure
 
+FFGN coat like SHLD
 
 
-flying vehicles
 
+
+- cybercolors
+FIGH fight
+absorb electrons for energy
 
 
 
