@@ -2374,7 +2374,7 @@ void Simulation::init_can_move()
 		can_move[movingType][PT_STKM] = 0;
 		can_move[movingType][PT_STKM2] = 0;
 		can_move[movingType][PT_FIGH] = 0;
-		// Vehiicle shouldn't be displaced
+		// Vehicle shouldn't be displaced
 		can_move[movingType][PT_CYTK] = 0;
 		can_move[movingType][PT_TANK] = 0;
 		can_move[movingType][PT_GNSH] = 0;
@@ -2413,6 +2413,7 @@ void Simulation::init_can_move()
 		{
 			can_move[PT_PROT][destinationType] = 2;
 			can_move[PT_GRVT][destinationType] = 2;
+			can_move[PT_BALI][destinationType] = 2;
 		}
 	}
 
