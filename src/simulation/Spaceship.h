@@ -1,8 +1,12 @@
+#ifndef SPACESHIP_H
+#define SPACESHIP_H
+
 #include "simulation/ElementCommon.h"
 #include <vector>
-
 namespace SHIPS {
-    std::vector<int> ships;
-    std::array<int, 2> components{ PT_COTR, PT_HULL };
+    extern std::vector<int> ships;
+    extern std::array<int, 2> components;
     void cloneTMP(Simulation* sim, int i, int x, int y);
 }
+
+#endif

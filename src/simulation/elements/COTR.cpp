@@ -1,11 +1,12 @@
 #include "simulation/ElementCommon.h"
-#include "common/tpt-rand.h"
-#include <vector>
 #include "simulation/Spaceship.h"
+#include "common/tpt-rand.h"
+#include <bits/stdc++.h>
+#include <vector>
 
-namespace COTR_DATA {
-	std::vector<int> ships;
-}
+// namespace COTR_DATA {
+// 	std::vector<int> ships;
+// }
 
 //#TPT-Directive ElementClass Element_COTR PT_COTR 208
 Element_COTR::Element_COTR()

@@ -1,8 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include "simulation/vehicles/vehicle.h"
 #include "simulation/vehicles/cybertruck.h"
-#include <algorithm>
-#include <iostream>
 
 //#TPT-Directive ElementClass Element_CYTK PT_CYTK 190
 Element_CYTK::Element_CYTK()
@@ -36,7 +34,7 @@ Element_CYTK::Element_CYTK()
 
 	DefaultProperties.life = 100; // Default 100 HP
 
-	Properties = TYPE_PART | PROP_NOCTYPEDRAW;
+	Properties = TYPE_PART | PROP_NOCTYPEDRAW | PROP_VEHICLE;
 
 	LowPressure = IPL;
 	LowPressureTransition = NT;
@@ -50,25 +48,10 @@ Element_CYTK::Element_CYTK()
 	Update = &Element_CYTK::update;
 	Graphics = &Element_CYTK::graphics;
 	ChangeType = &Element_CYTK::changeType;
-	Create = &Element_CYTK::create;
-}
-
-//#TPT-Directive ElementHeader Element_CYTK static void create(ELEMENT_CREATE_FUNC_ARGS)
-void Element_CYTK::create(ELEMENT_CREATE_FUNC_ARGS) {
-	sim->vehicles.push_back(i);
-	if (sim->vehicles.size() > sim->MAX_VEHICLES)
-		sim->kill_part(i);
 }
 
 //#TPT-Directive ElementHeader Element_CYTK static void changeType(ELEMENT_CHANGETYPE_FUNC_ARGS)
 void Element_CYTK::changeType(ELEMENT_CHANGETYPE_FUNC_ARGS) {
-	// Erase self from vehicles vec
-	if (to != PT_CYTK) {
-		auto pos = std::find(sim->vehicles.begin(), sim->vehicles.end(), i);
-		if (pos != sim->vehicles.end())
-			sim->vehicles.erase(pos);
-	}
-
 	if (to == PT_NONE && sim->parts[i].life <= 0) {
 		int j, t;
 		for (auto px = CYBERTRUCK_PIXELS.begin(); px != CYBERTRUCK_PIXELS.end(); ++px) {

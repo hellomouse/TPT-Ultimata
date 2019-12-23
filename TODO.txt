@@ -48,9 +48,12 @@ wiki: if tmp > 0 then it will NOT pressure MVSD
 use RNG::Ref()
 
 
+finish BALI
+
 FFGN coat like SHLD
 
 
+TYPE_VEHICLE auto add in sim instead of change type shit
 
 add a tank kv-2
 gunship

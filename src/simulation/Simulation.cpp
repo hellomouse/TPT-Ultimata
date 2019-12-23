@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include <set>
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -2373,8 +2374,10 @@ void Simulation::init_can_move()
 		can_move[movingType][PT_STKM] = 0;
 		can_move[movingType][PT_STKM2] = 0;
 		can_move[movingType][PT_FIGH] = 0;
-		// Cybertruck shouldn't be displaced
+		// Vehiicle shouldn't be displaced
 		can_move[movingType][PT_CYTK] = 0;
+		can_move[movingType][PT_TANK] = 0;
+		can_move[movingType][PT_GNSH] = 0;
 		//INVS behaviour varies with pressure
 		can_move[movingType][PT_INVIS] = 3;
 		//stop CNCT from being displaced by other particles
@@ -3080,12 +3083,17 @@ void Simulation::kill_part(int i)//kills particle number i
 		}
 	}
 
-	// Reset cybertruck flags for p1 p2 occupied
-	if (t == PT_CYTK) {
+	if (elements[t].Properties & PROP_VEHICLE) {
+		// Reset flags to mark occupied
 		if (parts[i].tmp2 == 1)
 			vehicle_p1 = -1;
 		if (parts[i].tmp2 == 2)
 			vehicle_p2 = -1;
+
+		// Erase self from vehicles vec
+		auto pos = std::find(vehicles.begin(), vehicles.end(), i);
+		if (pos != vehicles.end())
+			vehicles.erase(pos);
 	}
 
 	elementCount[t]--;
@@ -3121,6 +3129,15 @@ bool Simulation::part_change_type(int i, int x, int y, int t)
 		elementCount[parts[i].type]--;
 	elementCount[t]++;
 
+	if (elements[t].Properties & PROP_VEHICLE) {
+		// Erase self from vehicles vec
+		if (t != parts[i].type) {
+			auto pos = std::find(vehicles.begin(), vehicles.end(), i);
+			if (pos != vehicles.end())
+				vehicles.erase(pos);
+		}
+	}
+
 	parts[i].type = t;
 	if (elements[t].Properties & TYPE_ENERGY)
 	{
@@ -3134,6 +3151,7 @@ bool Simulation::part_change_type(int i, int x, int y, int t)
 		if (ID(photons[y][x]) == i)
 			photons[y][x] = 0;
 	}
+
 	return false;
 }
 
@@ -3281,6 +3299,13 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 
 	if (elements[t].ChangeType)
 		(*(elements[t].ChangeType))(this, i, x, y, oldType, t);
+
+	// Vehicles
+	if (elements[t].Properties & PROP_VEHICLE) {
+		vehicles.push_back(i);
+		if (vehicles.size() > MAX_VEHICLES)
+			kill_part(i);
+	}
 
 	// FIGH Id
 	if (t == PT_FIGH)
@@ -4701,8 +4726,8 @@ killed:
 					}
 				}
 
-				// Some elements update n times per frame
-				if (t == PT_CYTK && update_count < 2)
+				// Some elements update n times per frame (vehicles update twice)
+				if (elements[t].Properties & PROP_VEHICLE && update_count < 2)
 					goto update_loop_begin;
 			}
 movedone:
