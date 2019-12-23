@@ -1,4 +1,3 @@
-ball lightning
 
 
 Lanthanum-this ones exciting, for I could see this bridging the gap between solids and solid explosives.
@@ -58,6 +57,7 @@ use RNG::Ref()
 --moony
 
 finish BALI
+- absorb nearby BALI
 
 FFGN coat like SHLD
 
