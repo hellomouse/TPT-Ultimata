@@ -83,6 +83,7 @@ Spaceships
 - Components communicate with eachother via FILT network inside the ship
 which operates using flood fill to transfer data
 - Each component is assigned an ID in network
+-- HULL, Hull, Hull of the ship
 -- COTR, Controller
    - Fires signal once every three frames so components can update and communicate
    - Stores component id's
