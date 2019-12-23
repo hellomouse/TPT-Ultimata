@@ -25,6 +25,7 @@ class SimulationSample;
 struct matrix2d;
 struct vector2d;
 
+class GameModel;
 class Simulation;
 class Renderer;
 class Gravity;
@@ -75,6 +76,10 @@ public:
 	playerst fighters[MAX_FIGHTERS]; //Defined in Stickman.h
 	unsigned char fighcount; //Contains the number of fighters
 	bool gravWallChanged;
+	//Vehicles (cybertruck)
+	int vehicle_p1 = -1, vehicle_p2 = -1;
+	std::vector<int> vehicles;
+	const unsigned char MAX_VEHICLES = 100;
 	//Portals and Wifi
 	Particle portalp[CHANNELS][8][80];
 	int portal_rx[8];
@@ -222,6 +227,7 @@ public:
 	// These don't really belong anywhere at the moment, so go here for loop edge mode
 	static int remainder_p(int x, int y);
 	static float remainder_p(float x, float y);
+	GameModel *model = nullptr;
 
 	String ElementResolve(int type, int ctype);
 	String BasicParticleInfo(Particle const &sample_part);

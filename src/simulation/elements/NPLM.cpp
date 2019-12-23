@@ -5,7 +5,7 @@ Element_NPLM::Element_NPLM()
 {
 	Identifier = "DEFAULT_PT_NPLM";
 	Name = "NPLM";
-	Colour = PIXPACK(0xB00000);  //Get it BOOOO
+	Colour = PIXPACK(0xB00000);  // Get it BOOOO
 	MenuVisible = 1;
 	MenuSection = SC_EXPLOSIVE;
 	Enabled = 1;
@@ -51,34 +51,40 @@ Element_NPLM::Element_NPLM()
 //#TPT-Directive ElementHeader Element_NPLM static int update(UPDATE_FUNC_ARGS)
 int Element_NPLM::update(UPDATE_FUNC_ARGS)
 {
-	int r, rx, ry, rt;
+	if (parts[i].tmp > 0 && sim->timer % 10 == 0) {
+		int j = sim->create_part(-1, parts[i].x - 1, parts[i].y - 1, PT_FIRE);
+		parts[j].life = RNG::Ref().between(0, 200);
+		
+		for (unsigned int k = -1; k <= 1; ++k) {
+			j = sim->create_part(-1, parts[i].x + k, parts[i].y + k, PT_BCOL);
+			parts[j].life = RNG::Ref().between(0, 400);
+			parts[j].vx = RNG::Ref().between(-15, 15);
+			parts[j].vy = RNG::Ref().between(-15, 15);
+		}
+
+		// sim->create_part(-1, parts[i].x - 1, parts[i].y + 1, PT_NITR);
+	}
+
+	int r, rx, ry;
 	for (rx = -1; rx < 2; rx++){
 		for (ry = -1; ry < 2; ry++){
 			if (BOUNDS_CHECK && (rx || ry)) {
 				r = pmap[y + ry][x + rx];
-				if (TYP(r) == PT_NPLM)
+				if (!r || TYP(r) == PT_NPLM)
 					r = sim->photons[y + ry][x + rx];
 				if (!r)
 					continue;
 
+				if (sim->elements[TYP(r)].Properties & TYPE_PART ||
+					sim->elements[TYP(r)].Properties & TYPE_SOLID)
+					parts[i].vx = parts[i].vy = 0;
+
 				if (parts[ID(r)].type == PT_FIRE || parts[ID(r)].type == PT_PLSM || parts[ID(r)].type == PT_LAVA
-												 || parts[i].temp >= 1273.15f || parts[i].tmp == 1) {
+												 || parts[i].temp >= 1273.15f) {
 					parts[i].tmp = 1;
-					sim->create_part(-1, parts[i].x - 1, parts[i].y - 1, PT_FIRE);
-
-					// More fire!
-					// sim->create_part(-1, parts[i].x - 1, parts[i].y + 1, PT_FIRE);
-					// sim->create_part(-1, parts[i].x + 1, parts[i].y + 1, PT_FIRE);
-					// sim->create_part(-1, parts[i].x + 1, parts[i].y - 1, PT_FIRE);
-
-					sim->create_part(-1, parts[i].x - 1, parts[i].y - 1, PT_BCOL);
-					sim->create_part(-1, parts[i].x - 1, parts[i].y + 1, PT_NITR);
-					sim->create_part(-1, parts[i].x + 1, parts[i].y + 1, PT_BCOL);
-					// sim->create_part(-1, parts[i].x + 1, parts[i].y - 1, PT_THRM);
-					
 					parts[ID(r)].vx = parts[ID(r)].vx * 2;
 					parts[ID(r)].vy = parts[ID(r)].vy * 2;
-					parts[ID(r)].life = rand() % 400;
+					parts[ID(r)].life++;
 					parts[i].temp += 50.0f;
 					parts[i].life -= 1;
 				}

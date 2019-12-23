@@ -31,6 +31,8 @@
 #include "gui/game/DecorationTool.h"
 #include "gui/interface/Engine.h"
 
+#include "music/music.h"
+
 #include <iostream>
 
 GameModel::GameModel():
@@ -51,6 +53,7 @@ GameModel::GameModel():
 	decoSpace(0)
 {
 	sim = new Simulation();
+	sim->model = this;
 	ren = new Renderer(ui::Engine::Ref().g, sim);
 
 	activeTools = regularToolset;
@@ -300,7 +303,7 @@ void GameModel::BuildMenus()
 			{
 				tempTool = new Element_TESC_Tool(i, sim->elements[i].Name, sim->elements[i].Description, PIXR(sim->elements[i].Colour), PIXG(sim->elements[i].Colour), PIXB(sim->elements[i].Colour), sim->elements[i].Identifier, sim->elements[i].IconGenerator);
 			}
-			else if(i == PT_STKM || i == PT_FIGH || i == PT_STKM2)
+			else if(i == PT_STKM || i == PT_FIGH || i == PT_STKM2 || sim->elements[i].Properties & PROP_VEHICLE)
 			{
 				tempTool = new PlopTool(i, sim->elements[i].Name, sim->elements[i].Description, PIXR(sim->elements[i].Colour), PIXG(sim->elements[i].Colour), PIXB(sim->elements[i].Colour), sim->elements[i].Identifier, sim->elements[i].IconGenerator);
 			}
@@ -948,6 +951,11 @@ void GameModel::SetPaused(bool pauseState)
 		sim->AfterSim();
 		sim->debug_currentParticle = 0;
 		Log(logmessage, false);
+	}
+
+	for (auto i = NOTE::sounds.begin(); i != NOTE::sounds.end(); ++i) {
+		if ((*i) && (*i)->callbacks < SOUND_CALLBACKS_TO_STOP)
+			pauseState ? (*i)->stop() : (*i)->play();
 	}
 
 	sim->sys_pause = pauseState?1:0;

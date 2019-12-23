@@ -56,18 +56,21 @@ Element_QLOG::Element_QLOG()
 //#TPT-Directive ElementHeader Element_QLOG static int update_scan(Particle *parts, int pmap[YRES][XRES], int i, int tx, int ty, bool multi_check)
 int Element_QLOG::update_scan(Particle *parts, int pmap[YRES][XRES], int i, int tx, int ty, bool multi_check) {
 	// Func when sparking, sets life and determines a gate's other inputs
-	parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
-	if (multi_check && parts[ID(pmap[ty][tx])].tmp == parts[i].tmp) {
-		if (parts[ID(pmap[ty][tx])].tmp2 == 1 && parts[i].pavg[0] < 0)
-			parts[i].pavg[0] = ID(pmap[ty][tx]);
-		else if (parts[ID(pmap[ty][tx])].tmp2 == 2 && parts[i].pavg[1] < 0)
-			parts[i].pavg[1] = ID(pmap[ty][tx]);
+	int id = ID(pmap[ty][tx]);
+
+	if (parts[id].ctype == parts[i].ctype) {
+		if (multi_check && parts[id].tmp == parts[i].tmp) {
+			if (parts[id].tmp2 == 1 && parts[i].pavg[0] < 0)
+				parts[i].pavg[0] = id;
+			else if (parts[id].tmp2 == 2 && parts[i].pavg[1] < 0)
+				parts[i].pavg[1] = id;
+		}
 	}
 	return 0;
 }
 
-//#TPT-Directive ElementHeader Element_QLOG static int find_ion(Particle *parts, int pmap[YRES][XRES], int i)
-int Element_QLOG::find_ion(Particle *parts, int pmap[YRES][XRES], int i) {
+//#TPT-Directive ElementHeader Element_QLOG static int find_ion(Particle *parts, int photons[YRES][XRES], int pmap[YRES][XRES], int i)
+int Element_QLOG::find_ion(Particle *parts, int photons[YRES][XRES], int pmap[YRES][XRES], int i) {
 	int dx, dy; dx = dy = 0;
 	int tx = parts[i].x;
 	int ty = parts[i].y;
@@ -75,23 +78,25 @@ int Element_QLOG::find_ion(Particle *parts, int pmap[YRES][XRES], int i) {
 		dx = parts[i].tmp == 0 ? -1 : 1;
 	else dy = parts[i].tmp == 1 ? -1 : 1;
 
+	// Keep searching until we hit a non-QLOG element or ION
 	while (ty >= 0 && ty < YRES && tx >= 0 && tx < XRES &&
-			(!pmap[ty][tx] || TYP(pmap[ty][tx]) != PT_ION)) {
+			(!pmap[ty][tx] || TYP(pmap[ty][tx]) == PT_QLOG) &&
+			(!photons[ty][tx] || TYP(photons[ty][tx]) != PT_ION)) {
 		tx += dx;
 		ty += dy;
 	}
 
 	// Couldn't find an ION
-	if (!pmap[ty][tx] || TYP(pmap[ty][tx]) != PT_ION)
+	if (!photons[ty][tx] || TYP(photons[ty][tx]) != PT_ION)
 		return -1;
-	return ID(pmap[ty][tx]);
+	return ID(photons[ty][tx]);
 }
 
 //#TPT-Directive ElementHeader Element_QLOG static int update(UPDATE_FUNC_ARGS)
 int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 	/* 
 	 * Properties
-     * - life: is beam firing
+     * - flags: For non-first input, stores location of first input
 	 * - tmp: beam direction
 	 * - tmp2: input number (for multi gate inputs, 0 indexed)
 	 * - ctype: logic gate type
@@ -101,14 +106,50 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 	 */
 	int rx, ry, r;
 
-    /* When firing the beam searches for any ION in a straight line to modify. Saves distance in flags */
+    /* When firing the beam searches for any ION in a straight line to modify. */
 	if (!QGATE_NAME::does_nothing(parts[i].ctype) && parts[i].life == QGATE_NAME::COOLDOWN) {
 		parts[i].life--;
 		parts[i].flags = -1;
 
+		// Only multi gate input 0 actually does anything
+		if (parts[i].tmp2 > 0)
+			return 0;
+
+		// If current gate input > 1 find the other gates
+		int tx = parts[i].x, ty = parts[i].y;
+
+		// Reset before searching
+		parts[i].pavg[0] = -1;
+		parts[i].pavg[1] = -1;
+
+		if (parts[i].tmp == 0 || parts[i].tmp == 2) { // Search vertical
+			ty++;
+			while (ty >= 0 && ty < YRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
+				update_scan(parts, pmap, i, tx, ty, true);
+				ty++;
+			}
+			ty = parts[i].y - 1;
+			while (ty >= 0 && ty < YRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
+				update_scan(parts, pmap, i, tx, ty, true);
+				ty--;
+			}
+		}
+		else { // Search horizontal
+			tx++;
+			while (tx >= 0 && tx < XRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
+				update_scan(parts, pmap, i, tx, ty, true);
+				tx++;
+			}
+			tx = parts[i].x - 1;
+			while (tx >= 0 && tx < XRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
+				update_scan(parts, pmap, i, tx, ty, true);
+				tx--;
+			}
+		}
+
 		// Find the ion
 		std::vector<int> IONS;
-		IONS.push_back(find_ion(parts, pmap, i));
+		IONS.push_back(find_ion(parts, sim->photons, pmap, i));
 
 		// -- Actual gate logic begins here -- //
 		// ----------------------------------- //
@@ -126,19 +167,15 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 		for (int shift = 2; shift <= 3; ++shift) {
 			// (2^n by 2^n matrix for 2^n particle state, where n is number of inputs)
 			if (gate.size() >= (1 << shift)) {
-				// Only multi gate input 0 actually does anything
-				if (parts[i].tmp2 > 0)
-					return 0;
-
 				// Failed to find a 2ND input (All checks must be present as element might have moved)
 				// or been deleted since last frame
 				int pavg = shift - 2;
 				if (parts[i].pavg[pavg] == -1 || parts[(int)(parts[i].pavg[pavg])].type != PT_QLOG ||
 						parts[i].ctype != parts[(int)(parts[i].pavg[pavg])].ctype ||
 						parts[i].tmp != parts[(int)(parts[i].pavg[pavg])].tmp ||
-						parts[(int)(parts[i].pavg[pavg])].tmp2 != 1)
+						parts[(int)(parts[i].pavg[pavg])].tmp2 != pavg + 1)
 					goto end_logic;
-				IONS.push_back(find_ion(parts, pmap, parts[i].pavg[pavg]));
+				IONS.push_back(find_ion(parts, sim->photons, pmap, parts[i].pavg[pavg]));
 			}
 		}
 
@@ -146,28 +183,47 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 		for (unsigned int l = 0; l < IONS.size(); ++l) {
 			if (IONS[l] < 0)
 				goto end_logic; // Invalid ION found
+
+			// IONs only gain quantum states when worked on by a
+			// QLOG (so just normal stray IONs don't decohere every 0.1s wasting
+			// computational cycles. Whether an ION has a quantum state is determined
+			// by its flags property)
+			if (parts[IONS[l]].flags == 0) {
+				QUANTUM::create_particle_state(parts, IONS[l]);
+				parts[IONS[l]].flags = 1;
+			}
 		}
 
 		switch(parts[i].ctype) {
 			// Reset ION state gate
 			case QGATE_NAME::RESET: {
+				if (IONS.size() == 0) break;
 				QUANTUM::create_particle_state(parts, IONS[0]);
 				parts[IONS[0]].flags = 1;
 				break;
 			}
 			// Detect gate is special
 			case QGATE_NAME::DETECT: {
+				if (IONS.size() == 0) break;
 				int spin = QUANTUM::measure(IONS[0], parts[IONS[0]].tmp2, parts[i].tmp2);
 				if (spin == 0)
 					goto end_logic; // Don't spark if spindown
-
-				// SPRK nearby metal
+				
 				for (rx = -1; rx <= 1; rx++)
 				for (ry = -1; ry <= 1; ry++)
-					if (BOUNDS_CHECK && (rx || ry)) {
+					if (BOUNDS_CHECK && (rx || ry) && (rx == 0 || ry == 0)) {
 						r = pmap[y + ry][x + rx];
 						if (!r) continue;
-						if (!(sim->elements[TYP(r)].Properties&PROP_CONDUCTS))
+
+						// Activate WIFI
+						if (TYP(r) == PT_WIFI) {
+							sim->wireless[parts[ID(r)].tmp][1] = 1;
+							sim->ISWIRE = 2;
+							continue;
+						}
+
+						// SPRK nearby metal
+						if (!(sim->elements[TYP(r)].Properties & PROP_CONDUCTS))
 							continue;
 
 						parts[ID(r)].life = 4;
@@ -198,7 +254,6 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 
 	/* Beam directions: tmp = 0: left, 1 = up, 2 = right, 3 = down */
 	int dir = parts[i].tmp;
-	bool multi_check = QGATE_NAME::is_multi_gate(parts[i].ctype); // Multi gate check
 
 	for (rx = -1; rx <= 1; rx++)
 		for (ry = -1; ry <= 1; ry++)
@@ -212,31 +267,27 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 					int tx = parts[i].x;
 					int ty = parts[i].y;
 
-					// Reset before searching
-					parts[i].pavg[0] = -1;
-					parts[i].pavg[1] = -1;
-
 					if (dir == 0 || dir == 2) { // Search vertical
 						ty++;
 						while (ty >= 0 && ty < YRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
-							update_scan(parts, pmap, i, tx, ty, multi_check);
+							parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
 							ty++;
 						}
 						ty = parts[i].y - 1;
 						while (ty >= 0 && ty < YRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
-							update_scan(parts, pmap, i, tx, ty, multi_check);
+							parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
 							ty--;
 						}
 					}
 					else { // Search horizontal
 						tx++;
 						while (tx >= 0 && tx < XRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
-							update_scan(parts, pmap, i, tx, ty, multi_check);
+							parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
 							tx++;
 						}
 						tx = parts[i].x - 1;
 						while (tx >= 0 && tx < XRES && parts[ID(pmap[ty][tx])].type == PT_QLOG) {
-							update_scan(parts, pmap, i, tx, ty, multi_check);
+							parts[ID(pmap[ty][tx])].life = QGATE_NAME::COOLDOWN;
 							tx--;
 						}
 					}
@@ -250,13 +301,19 @@ int Element_QLOG::update(UPDATE_FUNC_ARGS) {
 //#TPT-Directive ElementHeader Element_QLOG static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_QLOG::graphics(GRAPHICS_FUNC_ARGS) {
 	// Vary color based on ctype
-	// TODO maybe pre-make array of colors
 	if (cpart->ctype % 2 == 0) *colb += 30 * cpart->ctype;
 	else *colg += 30 * cpart->ctype;
 
 	// Draw beam if it should
 	if (cpart->life <= 0) return 0;
-	
+	if (cpart->life == QGATE_NAME::COOLDOWN) {
+		int ION = find_ion(ren->sim->parts, ren->sim->photons, ren->sim->pmap, ID(ren->sim->pmap[(int)cpart->y][(int)cpart->x]));
+		if (ION >= 0) {
+			ren->draw_line((int)cpart->x, (int)cpart->y, ren->sim->parts[ION].x, ren->sim->parts[ION].y,
+				*colr, *colg, *colb, 100);
+		}
+	}
+
 	// Brighten when triggered
 	*colr = (int)(*colr * 1.5);
 	*colg = (int)(*colg * 1.5);

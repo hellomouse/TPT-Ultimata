@@ -30,7 +30,7 @@ namespace QGATE_NAME {
 
     // Does the gate do nothing?
     bool does_nothing(int gate_id) {
-        return gate_id < 1 || gate_id > 14;
+        return gate_id < 1 || gate_id > 15;
     }
 
     // Is the gate a multi gate (> 1 input)

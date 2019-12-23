@@ -1,47 +1,120 @@
-napalm sticky
 
-stasis field strength
-- set by temp
-- EXFN wave breaks
-
+Readd FREZ from my mod
 
 
 ball lightning
 
 
+realistic stars 
+- types:
+- neutron stars
+- white dwaves 
+- red dwarf
+- yellow sun
+- red supergiant 
+- blue aelly big ones
+
+star starts at sun mass
+u can add HYGN or NBLE to make it grow!
+star grows larger and becomes blue
+once fusion cycle eats up it becomes either red giant or redsupergiant
+
+red giant becomes white dwarf or maybe supernova
+supergiant goes supernova and collapses either into black hole or neutron star
+
+mass can be sucked away by gravity
 
 
 
-
-GATES LEFT
-    DETECTX, DETECTY
-        When a qubit is in the \vert R \rangle∣R⟩ state (\vert L \rangle∣L⟩ state), a measurement in the y-basis will result in 0 (1)
-        When a qubit is in the \vert + \rangle∣+⟩ state (\vert - \rangle∣−⟩ state), a measurement in the x-basis will result in 0 (1)
-            (Default is detect Z)
-QUANTUM TODO
-3. figure out different basis
+Add SUGR and NPLM to wiki
 
 
+force field generator 
+- default: realistic 
+- flag to be unrealistic
+
+
+MOVING SOLIDS 
+--------------------------
+2.5 torque
+3. rotation
+torque can be approximated by taking a grid sample of solids across the solid
+- grid should start at a particle in the solid to guarente at least 1 sample
+
+wiki: if tmp > 0 then it will NOT pressure MVSD
+
+use RNG::Ref() 
+
+^ Please use. GCC RNG is slow and has a several kb state. TPT rng takes a few clockcycles and only uses 1 dword of RAM
+--moony
+
+finish BALI
+
+FFGN coat like SHLD
 
 
 
+gunship
+ - laser weapon
+ - tracking missiles
+Potentially repurpose vehicle code to add AI creatures.
 
+soviet save :D
+- with anthem
+
+
+INFO element who made the mod 
+
+write guide about quantum 
 have lua mod to place down quantum gates?
 
+
+Two more particlemaps
+electric field
+magnetic fields
+
+add bio stuff so we can make a realistic human 
+- blood, clots with air
+
+food
+
+
+fancy black holes
 
 2 row elements?
 
 
 
-
-
-
-
-
-
-
-
-
+Spaceships
+- Ships have a unique id and allegiance so they can battle eachother
+- Components communicate with eachother via FILT network inside the ship
+which operates using flood fill to transfer data
+- Each component is assigned an ID in network
+-- HULL, Hull, Hull of the ship
+-- COTR, Controller
+   - Fires signal once every three frames so components can update and communicate
+   - Stores component id's
+   - Tells each component when to use the FILT network
+   - Components write data after COTR sends data. if no data is received then we can assume componenet has been destroyed
+   and remove it from the set of component id's
+   - Control signals (FILT has 32 bit CTYPE)     
+     001: FIRE, <componentID:8>00000000, Maximum number of components that can be connected is 255
+     010: CONNECT, <particleID:16>0000000000000000, Component is added. Passes particle id or maybe mod of it?
+     011: ASSIGN, <particleID:16>0000000000000000> <componentID:8> 00000000, Assigns componentID
+-- RADR, Radar, Finds enemy particles and passes coordinates to lasers
+   - Scanning range is 30 pixels or higher?
+   100: TGRT, <X:10>0000000000 <Y:10>0000000000
+-- NAVI, Navigation
+   -- Tells the ship to go somewhere? idk
+   -- Different operating modes
+   Altitude Control, Stick to coordinate, Maintain distance from enemy
+   101: MOVE, <direction:2>00
+-- THRS, Thruster, Applies thrust to the ship body
+   -- Stores direction thruster has been attached to ship
+   -- Calculates by which side of the thruster is more open.
+   Draws a fancy cone
+   -- Operating capacity depends on how much damage thruster has taken
+   
 
 
 QUANTUM STUFF THIS IS DONE IN CASE U NEED IT 

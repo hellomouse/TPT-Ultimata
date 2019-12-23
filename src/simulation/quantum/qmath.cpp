@@ -4,7 +4,7 @@
 #include <bitset>
 #include <set>
 #include <algorithm>
- 
+
 /* Helper functions */
 // ---------------------------- //
 
@@ -35,6 +35,8 @@ void swap_state_vector(LINALG::vec &state, std::set<std::pair<int, int> > &to_sw
 
         if (x1 ^ x2) { // The 2 qbits are opposite (bit1 XOR bit2)
             int swapped = swapbit(i, d1, d2), index = i;
+            if (swapped >= state.size())
+                continue;
             if (index > swapped) // Make sure the swap pair is in order from lowest to highest
                 std::swap(index, swapped);
             std::pair<int, int> swap_pair = std::make_pair(index, swapped);
@@ -42,7 +44,7 @@ void swap_state_vector(LINALG::vec &state, std::set<std::pair<int, int> > &to_sw
             // If we haven't already swapped swap and insert into set
             if (to_swap.find(swap_pair) == to_swap.end()) {
                 to_swap.insert(swap_pair);
-                std::swap(state[index], state[swapped]);
+                std::iter_swap(state.begin() + index, state.begin() + swapped);
             }
         }
     }

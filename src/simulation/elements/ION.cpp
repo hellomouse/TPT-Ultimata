@@ -30,25 +30,8 @@ int Element_ION::update(UPDATE_FUNC_ARGS) {
 	 * of its tmp2 variable. Most ION interactions occur in QLOG
 	 */
 
-	// Create quantum state if none:
-	if (parts[i].flags != 1) {
-		QUANTUM::create_particle_state(parts, i);
-		parts[i].flags = 1;
-	}
-
-	if (parts[i].temp > 20.0f) {
-		// If overheated will impart a random velocity to still IONs
-		if (parts[i].vx == 0 && parts[i].vy == 0) {
-			parts[i].vx = ((rand() % 1000) / 1000.0f * 8.0f + 1.0f) * (rand() % 2 == 0 ? -1 : 1);
-			parts[i].vy = ((rand() % 1000) / 1000.0f * 8.0f + 1.0f) * (rand() % 2 == 0 ? -1 : 1);
-		}
-
-		// Randomly decohere
-		if (rand() % 30 == 0)
-			QUANTUM::decohere_particle(parts, i);
-	}
-
 	int r, rx, ry;
+	bool collided = false;
 
 	for (rx=-1; rx<2; rx++)
 		for (ry=-1; ry<2; ry++)
@@ -66,21 +49,37 @@ int Element_ION::update(UPDATE_FUNC_ARGS) {
 					parts[ID(r)].vx = -parts[ID(r)].vx;
 					parts[ID(r)].vy = -parts[ID(r)].vy;
 					
-					
-					if (rand() % 20 == 0)
-						QUANTUM::decohere_particle(parts, i);
-					if (rand() % 800 == 0)
-						sim->kill_part(i);
+					// Make quantum circuits easier to build by
+					// not having decoherence or dying when diagonal
+					// pixel is touching
+					if (parts[i].flags > 0 && (rx == 0 || ry == 0)) {
+						if (rand() % 20 == 0)
+							QUANTUM::decohere_particle(parts, i);
+						if (rand() % 800 == 0)
+							sim->kill_part(i);
+					}
+					collided = true;
 				}
 			}
 
-			// SPRK metals and destroy self
-			if ((sim->elements[TYP(r)].Properties & PROP_CONDUCTS)) {
-				parts[ID(r)].life = 4;
-				parts[ID(r)].ctype = TYP(r);
-				sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
-				sim->kill_part(i);
-			}
+	// Randomly diffuse
+	if (parts[i].temp > 20.0f) {
+		// If overheated will impart a random velocity to still IONs
+		if (!collided && parts[i].vx == 0 && parts[i].vy == 0) {
+			parts[i].vx = ((rand() % 1000) / 1000.0f * 8.0f + 1.0f) * (rand() % 2 == 0 ? -1 : 1);
+			parts[i].vy = ((rand() % 1000) / 1000.0f * 8.0f + 1.0f) * (rand() % 2 == 0 ? -1 : 1);
+		}
+
+		// Randomly decohere
+		if (parts[i].flags > 0 && rand() % 30 == 0)
+			QUANTUM::decohere_particle(parts, i);
+
+		// Randomly diffuse
+		if (rand() % 10 == 0) {
+			parts[i].vx += (rand() % 2 == 0) ? -1 : 1;
+			parts[i].vy += (rand() % 2 == 0) ? -1 : 1;
+		}
+	}
 
 	return 0;
 }

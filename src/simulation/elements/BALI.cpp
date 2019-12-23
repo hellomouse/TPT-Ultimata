@@ -6,6 +6,7 @@
 // Do not read this element code unless
 // you want to be spoiled for Liu Cixin's Ball Lightning (novel)
 
+
 // Ball lightning
 // Invisible until it charges up with energy and glows a brilliant white (Depends on how much it was charged)
 // It's energy output is electricity like LIGH/SPRK
