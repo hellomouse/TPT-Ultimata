@@ -1,7 +1,8 @@
 #include "simulation/ElementCommon.h"
 #include "simulation/Spaceship.h"
 #include "common/tpt-rand.h"
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+#include <climits>
 #include <vector>
 
 // namespace COTR_DATA {
@@ -26,7 +27,7 @@ Element_COTR::Element_COTR()
 
 //#TPT-Directive ElementHeader Element_COTR static void create(ELEMENT_CREATE_FUNC_ARGS)
 void Element_COTR::create(ELEMENT_CREATE_FUNC_ARGS) {
-	sim->parts[i].tmp = RNG::Ref().between(0, INT_MAX);
+	SHIPS::ships.push_back(i);
 }
 
 //#TPT-Directive ElementHeader Element_COTR static int update(UPDATE_FUNC_ARGS)
