@@ -43,20 +43,20 @@ MOVING SOLIDS
 torque can be approximated by taking a grid sample of solids across the solid
 - grid should start at a particle in the solid to guarente at least 1 sample
 
+wiki: if tmp > 0 then it will NOT pressure MVSD
 
+use RNG::Ref()
 
-wiki: if tmp > 0 then it will NOT pressure
 
 FFGN coat like SHLD
 
 
 
-
-- cybercolors
-FIGH fight
-absorb electrons for energy
+add a tank kv-2
+gunship
 
 
+INFO element who made the mod 
 
 write guide about quantum 
 have lua mod to place down quantum gates?

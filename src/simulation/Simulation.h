@@ -76,8 +76,10 @@ public:
 	playerst fighters[MAX_FIGHTERS]; //Defined in Stickman.h
 	unsigned char fighcount; //Contains the number of fighters
 	bool gravWallChanged;
-	//Cybertruck
-	bool cybertruck_p1, cybertruck_p2;
+	//Vehicles (cybertruck)
+	int vehicle_p1 = -1, vehicle_p2 = -1;
+	std::vector<int> vehicles;
+	const unsigned char MAX_VEHICLES = 100;
 	//Portals and Wifi
 	Particle portalp[CHANNELS][8][80];
 	int portal_rx[8];

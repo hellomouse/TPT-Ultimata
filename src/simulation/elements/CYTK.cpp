@@ -1,5 +1,7 @@
 #include "simulation/ElementCommon.h"
-#include "simulation/Cybertruck.h"
+#include "simulation/vehicles/vehicle.h"
+#include "simulation/vehicles/cybertruck.h"
+#include <algorithm>
 #include <iostream>
 
 //#TPT-Directive ElementClass Element_CYTK PT_CYTK 190
@@ -7,7 +9,7 @@ Element_CYTK::Element_CYTK()
 {
 	Identifier = "DEFAULT_PT_CYTK";
 	Name = "CYTK";
-	Colour = PIXPACK(0x000077);
+	Colour = PIXPACK(0x4D5564);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
@@ -29,8 +31,10 @@ Element_CYTK::Element_CYTK()
 
 	Weight = 100;
 
-	HeatConduct = 0;
-	Description = "Tesla Cybertruck.";
+	HeatConduct = 60;
+	Description = "Tesla Cybertruck. STKM can ride, comes with several upgrades.";
+
+	DefaultProperties.life = 100; // Default 100 HP
 
 	Properties = TYPE_PART | PROP_NOCTYPEDRAW;
 
@@ -45,6 +49,44 @@ Element_CYTK::Element_CYTK()
 
 	Update = &Element_CYTK::update;
 	Graphics = &Element_CYTK::graphics;
+	ChangeType = &Element_CYTK::changeType;
+	Create = &Element_CYTK::create;
+}
+
+//#TPT-Directive ElementHeader Element_CYTK static void create(ELEMENT_CREATE_FUNC_ARGS)
+void Element_CYTK::create(ELEMENT_CREATE_FUNC_ARGS) {
+	sim->vehicles.push_back(i);
+	if (sim->vehicles.size() > sim->MAX_VEHICLES)
+		sim->kill_part(i);
+}
+
+//#TPT-Directive ElementHeader Element_CYTK static void changeType(ELEMENT_CHANGETYPE_FUNC_ARGS)
+void Element_CYTK::changeType(ELEMENT_CHANGETYPE_FUNC_ARGS) {
+	// Erase self from vehicles vec
+	if (to != PT_CYTK) {
+		auto pos = std::find(sim->vehicles.begin(), sim->vehicles.end(), i);
+		if (pos != sim->vehicles.end())
+			sim->vehicles.erase(pos);
+	}
+
+	if (to == PT_NONE && sim->parts[i].life <= 0) {
+		int j, t;
+		for (auto px = CYBERTRUCK_PIXELS.begin(); px != CYBERTRUCK_PIXELS.end(); ++px) {
+			t = rand() % 100;
+			if (t < 20)
+				j = create_part(sim, px->x, px->y, PT_BGLA, sim->parts[i].pavg[0], sim->parts, i);
+			else if (t < 70)
+				j = create_part(sim, px->x, px->y, PT_BRMT, sim->parts[i].pavg[0], sim->parts, i);
+			else
+				j = create_part(sim, px->x, px->y, PT_BREC, sim->parts[i].pavg[0], sim->parts, i);
+			if (j > -1) {
+				sim->parts[j].dcolour = 0xAF000000 | PIXRGB(px->r, px->g, px->b);
+				sim->parts[j].vx = sim->parts[i].vx;
+				sim->parts[j].vy = sim->parts[i].vy;
+				sim->parts[j].temp = sim->parts[i].temp;
+			}
+		}
+	}
 }
 
 //#TPT-Directive ElementHeader Element_CYTK static bool check_stkm(playerst *data, Simulation *sim, Particle *parts, int i)
@@ -56,14 +98,17 @@ bool Element_CYTK::check_stkm(playerst *data, Simulation *sim, Particle *parts, 
 			parts[i].tmp = 2;
 		else if (data->rocketBoots) // Cyberthruster
 			parts[i].tmp = 1;
+		else if (data->elem == PT_BOMB) // Bomb
+			parts[i].tmp = 3;
+		parts[i].ctype = data->elem;
 		sim->kill_part(data->stkmID);
 		return true;
 	}
 	return false;
 }
 
-//#TPT-Directive ElementHeader Element_CYTK static bool attempt_move(int dx, int dy, Simulation *sim, Particle *parts, int i)
-bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, int i) {
+//#TPT-Directive ElementHeader Element_CYTK static bool attempt_move(int dx, int dy, Simulation *sim, Particle *parts, int i, const Vehicle &v)
+bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, int i, const Vehicle &v) {
 	if (parts[i].vx == 0 && parts[i].vy == 0)
 		return false;
 
@@ -72,6 +117,24 @@ bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, 
 	y += parts[i].y;
 
 	int r, rx, ry;
+
+	// Search for nearby vehicles
+	for (auto ov = sim->vehicles.begin(); ov != sim->vehicles.end(); ++ov) {
+		if (*ov == i) // Dont collide with self
+			continue;
+		float dx = fabs(parts[i].x - parts[*ov].x);
+		float dy = fabs(parts[i].y - parts[*ov].y);
+
+		if (dx < v.WIDTH && dy < v.HEIGHT) {
+			if (fabs(parts[i].vx) > v.COLLISION_SPEED / 2.0f || fabs(parts[i].vy) > v.COLLISION_SPEED / 2.0f) {
+				parts[*ov].life -= rand() % 40 + 10;
+				parts[i].life -= rand() % 40 + 10;
+			}
+			parts[i].vx = 0;
+			parts[i].vy = 0;
+			break;
+		}
+	}
 
 	// Test surrounding particles
 	for (rx = -1; rx < 2; rx++)
@@ -84,7 +147,15 @@ bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, 
 
 				r = sim->pmap[y + ry][x + rx];
 				if (!r) continue;
-				if (TYP(r) != PT_CYTK &&
+
+				// Cybertrucks heal from electrons
+				if (parts[i].type == PT_CYTK && TYP(r) == PT_ELEC) {
+					parts[i].life += 5;
+					if (parts[i].life > 120)
+						parts[i].life = 120;
+				}
+
+				if (TYP(r) != PT_CYTK && TYP(r) != PT_PRTI && TYP(r) != PT_PRTO &&
 					(sim->elements[TYP(r)].Properties & TYPE_PART ||
 					 sim->elements[TYP(r)].Properties & TYPE_SOLID)) {
 					parts[i].vx = parts[i].vy = 0;
@@ -105,7 +176,7 @@ bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, 
 			fabs(-dvx + dvx * count) <= fabs(parts[i].vx) && fabs(-dvy + dvy * count) <= fabs(parts[i].vy)) {
 		r = sim->pmap[(int)round(sy)][(int)round(sx)];
 		if (r) {
-			if (TYP(r) != PT_CYTK &&
+			if (TYP(r) != PT_CYTK && TYP(r) != PT_PRTI && TYP(r) != PT_PRTO &&
 				(sim->elements[TYP(r)].Properties & TYPE_PART ||
 				sim->elements[TYP(r)].Properties & TYPE_SOLID)) {
 				parts[i].vx = parts[i].vy = 0;
@@ -128,48 +199,28 @@ int Element_CYTK::create_part(Simulation *sim, int x, int y, int type, float the
 	return sim->create_part(-1, x, y, type);
 }
 
-//#TPT-Directive ElementHeader Element_CYTK static int update(UPDATE_FUNC_ARGS)
-int Element_CYTK::update(UPDATE_FUNC_ARGS) {
-	// NOTE: CYBERTRUCK UPDATES TWICE PER FRAME
-
-	/**
-	 * Properties:
-	 * vx, vy (velocity)
-	 * tmp2 = which STKM controls it (1 = STKM, 2 = STK2, 3 = AI car)
-	 * tmp = rocket or flamethrower (0 none, 1 rocket, 2 flamethrower)
-	 * temp = damage
-	 * life = charge
-	 * pavg[0] = rotation
-	 * pavg[1] = direction of travel (left or right)
-	 * 
-	 * If touched by a FIGH the FIGH will attempt to use the cybertruck to run down
-	 * the STKM and STK2
-	 */
-
-	// Collision checking and update
-	// We'll consider moving in the direction of velocity
-	// We only check collisions with 6 points on the rectangle that
-	// bounds the cybertruck
-	bool pbl = attempt_move(-CYBERWIDTH / 2, CYBERHEIGHT / 2, sim, parts, i);
-	bool pbr = attempt_move(CYBERWIDTH / 2, CYBERHEIGHT / 2, sim, parts, i);
-	bool pbc = attempt_move(0, CYBERHEIGHT / 2, sim, parts, i);
-	bool tbl = attempt_move(-CYBERWIDTH / 2, -CYBERHEIGHT / 2, sim, parts, i);
-	bool tbr = attempt_move(CYBERWIDTH / 2, -CYBERHEIGHT / 2, sim, parts, i);
-	bool tbc = attempt_move(0, -CYBERHEIGHT / 2, sim, parts, i);
-	bool has_collision = pbl || pbr || pbc || tbl || tbr || tbc;
+//#TPT-Directive ElementHeader Element_CYTK static void initial_collision(Simulation *sim, Particle *parts, int i, const Vehicle &v, bool &has_collision)
+void Element_CYTK::initial_collision(Simulation *sim, Particle *parts, int i, const Vehicle &v, bool &has_collision) {
+	bool pbl = attempt_move(-v.WIDTH / 2, v.HEIGHT / 2, sim, parts, i, v);
+	bool pbr = attempt_move(v.WIDTH / 2, v.HEIGHT / 2, sim, parts, i, v);
+	bool pbc = attempt_move(0, v.HEIGHT / 2, sim, parts, i, v);
+	bool tbl = attempt_move(-v.WIDTH / 2, -v.HEIGHT / 2, sim, parts, i, v);
+	bool tbr = attempt_move(v.WIDTH / 2, -v.HEIGHT / 2, sim, parts, i, v);
+	bool tbc = attempt_move(0, -v.HEIGHT / 2, sim, parts, i, v);
+	has_collision = pbl || pbr || pbc || tbl || tbr || tbc;
 
 	// Match terrain rotation
 	if (pbl ^ pbr && !pbc) {
-		parts[i].pavg[0] += pbl ? CYBER_ROTATION_SPEED : -CYBER_ROTATION_SPEED;
+		parts[i].pavg[0] += pbl ? v.ROTATION_SPEED : -v.ROTATION_SPEED;
 		parts[i].y -= 0.5;
 	}
 	if (tbl ^ tbr && !tbc) {
-		parts[i].pavg[0] += tbl ? CYBER_ROTATION_SPEED : -CYBER_ROTATION_SPEED;
+		parts[i].pavg[0] += tbl ? v.ROTATION_SPEED : -v.ROTATION_SPEED;
 		parts[i].y += 0.5;
 	}
 
 	// If no collision rotate towards gravity every 10 frames
-	if (!has_collision && sim->timer % 10 == 0) {
+	if (!has_collision && sim->timer % 10 == 0)	{
 		float target_angle = -200.0f; // Placeholder
 		switch (sim->gravityMode) {
 		default:
@@ -185,9 +236,9 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 
 		if (target_angle == -200.0f) {}
 		else if (parts[i].pavg[0] > target_angle)
-			parts[i].pavg[0] -= CYBER_ROTATION_SPEED;
+			parts[i].pavg[0] -= v.ROTATION_SPEED;
 		else
-			parts[i].pavg[0] += CYBER_ROTATION_SPEED;
+			parts[i].pavg[0] += v.ROTATION_SPEED;
 	}
 
 	// If sim stkm or stkm2 exists then stop allowing control to this car
@@ -197,91 +248,55 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 		parts[i].tmp2 = 0;
 
 	// Prevent spawning of stkm and stkm2 if inside car
-	if (parts[i].tmp2 == 1) sim->cybertruck_p1 = true;
-	if (parts[i].tmp2 == 2) sim->cybertruck_p2 = true;
+	if (parts[i].tmp2 == 1)
+		sim->vehicle_p1 = i;
+	if (parts[i].tmp2 == 2)
+		sim->vehicle_p2 = i;
+}
 
-	// Player controls
-	if (parts[i].tmp2 == 1 || parts[i].tmp2 == 2) {
-		int command = parts[i].tmp2 == 1 ? sim->player.comm : sim->player2.comm;
-		if (has_collision || parts[i].tmp == 1) { // Accelerating only can be done on ground or if rocket
-			float vx = has_collision ? -CYBERSPEED : -CYBERFLYSPEED / 8.0f, vy = 0.0f;
 
-			if (((int)command & 0x01) == 0x01) { // Left
-				rotate(vx, vy, parts[i].pavg[0]);
-				parts[i].vx += vx;
-				parts[i].vy += vy;
-				parts[i].pavg[1] = 0; // Set face direction
-				parts[i].y -= 0.5;
-			}
-			if (((int)command & 0x02) == 0x02) { // Right
-				vx *= -1;
-				rotate(vx, vy, parts[i].pavg[0]);
-				parts[i].vx += vx;
-				parts[i].vy += vy;
-				parts[i].pavg[1] = 1; // Set face direction
-				parts[i].y -= 0.5;
-			}
+//#TPT-Directive ElementHeader Element_CYTK static void update_vehicle(Simulation *sim, Particle *parts, int i, const Vehicle &v, float ovx, float ovy)
+void Element_CYTK::update_vehicle(Simulation *sim, Particle *parts, int i, const Vehicle &v, float ovx, float ovy) {
+	// Limit max speed
+	if (parts[i].vx > v.MAX_SPEED)
+		parts[i].vx = v.MAX_SPEED;
+	else if (parts[i].vx < -v.MAX_SPEED)
+		parts[i].vx = -v.MAX_SPEED;
+	if (parts[i].vy > v.MAX_SPEED)
+		parts[i].vy = v.MAX_SPEED;
+	else if (parts[i].vy < -v.MAX_SPEED)
+		parts[i].vy = -v.MAX_SPEED;
 
-			// Limit max speed
-			if (parts[i].vx > MAX_CYBER_SPEED)
-				parts[i].vx = MAX_CYBER_SPEED;
-			else if (parts[i].vx < -MAX_CYBER_SPEED)
-				parts[i].vx = -MAX_CYBER_SPEED;
-			if (parts[i].vy > MAX_CYBER_SPEED)
-				parts[i].vy = MAX_CYBER_SPEED;
-			else if (parts[i].vy < -MAX_CYBER_SPEED)
-				parts[i].vy = -MAX_CYBER_SPEED;
+	// Run over STKM and FIGH if fast enough
+	if (fabs(ovx) > v.RUNOVER_SPEED || fabs(ovy) > v.RUNOVER_SPEED) {
+		int xdiff = abs(sim->player.legs[0] - parts[i].x);
+		int ydiff = abs(sim->player.legs[1] - parts[i].y);
+		if (xdiff + ydiff < v.WIDTH / 2) {
+			sim->kill_part(sim->player.stkmID);
 		}
 
-		if (((int)command & 0x04) == 0x04) { // Exit (up)
-			// Flag that cybertruck has no stkm
-			// Make sure new spawn location isn't too close or STKM
-			// will instantly re-enter
-			if (parts[i].tmp2 == 1) {
-				sim->cybertruck_p1 = false;
-				parts[i].tmp2 = 0;
-				sim->player.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM);
-				return 0;
-			}
-			else if (parts[i].tmp2 == 2) {
-				sim->cybertruck_p2 = false;
-				parts[i].tmp2 = 0;
-				sim->player2.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM2);
-				return 0;
-			}
+		xdiff = abs(sim->player2.legs[0] - parts[i].x);
+		ydiff = abs(sim->player2.legs[1] - parts[i].y);
+		if (xdiff + ydiff < v.WIDTH / 2) {
+			sim->kill_part(sim->player2.stkmID);
 		}
-		if (((int)command & 0x08) == 0x08) { // Fly or shoot (down)
-			if (parts[i].tmp == 1) { // Rocket
-				parts[i].vy = -CYBERFLYSPEED; // TODO respect gravity
 
-				int j1 = create_part(sim, CYBERWIDTH * 0.4f, CYBERHEIGHT / 2, PT_PLSM, parts[i].pavg[0], parts, i);
-				int j2 = create_part(sim, -CYBERWIDTH * 0.4f, CYBERHEIGHT / 2, PT_PLSM, parts[i].pavg[0], parts, i);
-				parts[j1].temp = parts[j2].temp = 1000.0f;
-				parts[j1].life = rand() % 100 + 50;
-				parts[j2].life = rand() % 100 + 50;
-			}
-			else if (parts[i].tmp == 2) { // Flamethrower
-				int j = create_part(sim, -CYBERWIDTH * 0.4f, -CYBERHEIGHT / 2, PT_BCOL, parts[i].pavg[0], parts, i);
-				parts[j].life = rand() % 100 + 50;
-				parts[j].vx = parts[i].pavg[1] ? 15 : -15;
-				parts[j].vy = -(rand() % 3 + 3);
-				rotate(parts[j].vx, parts[j].vy, parts[i].pavg[0]);
-			}
+		for (unsigned char j = 0; j < sim->fighcount; ++j) {
+			xdiff = abs(sim->fighters[j].legs[0] - parts[i].x);
+			ydiff = abs(sim->fighters[j].legs[1] - parts[i].y);
+			if (xdiff + ydiff < v.WIDTH / 2)
+				sim->kill_part(sim->fighters[j].stkmID);			
 		}
-	}
-	
-	if (parts[i].tmp2 > 2) {
-
 	}
 
 	// Check for nearby STKM and FIGH
-	if (!sim->cybertruck_p1 && parts[i].tmp2 == 0 && sim->player.spawnID >= 0 && check_stkm(&sim->player, sim, parts, i)) {
+	if (sim->vehicle_p1 < 0 && parts[i].tmp2 == 0 && sim->player.spawnID >= 0 && check_stkm(&sim->player, sim, parts, i)) {
 		parts[i].tmp2 = 1;
-		sim->cybertruck_p1 = true;
+		sim->vehicle_p1 = i;
 	}
-	if (!sim->cybertruck_p2 && parts[i].tmp2 == 0 && sim->player2.spawnID >= 0 && check_stkm(&sim->player2, sim, parts, i)) {
+	if (sim->vehicle_p2 < 0 && parts[i].tmp2 == 0 && sim->player2.spawnID >= 0 && check_stkm(&sim->player2, sim, parts, i)) {
 		parts[i].tmp2 = 2;
-		sim->cybertruck_p2 = true;
+		sim->vehicle_p2 = i;
 	}
 	if (parts[i].tmp2 == 0) {
 		for (unsigned char j = 0; j < sim->fighcount; ++j) {
@@ -291,12 +306,190 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 			}
 		}
 	}
+}
+
+//#TPT-Directive ElementHeader Element_CYTK static int update(UPDATE_FUNC_ARGS)
+int Element_CYTK::update(UPDATE_FUNC_ARGS) {
+	// NOTE: CYBERTRUCK UPDATES TWICE PER FRAME
+
+	/**
+	 * Properties:
+	 * vx, vy (velocity)
+	 * ctype = eleemnt of STKM when it entered
+	 * tmp2 = which STKM controls it (1 = STKM, 2 = STK2, 3 = AI car)
+	 * tmp = rocket or flamethrower (0 none, 1 rocket, 2 flamethrower)
+	 * temp = damage
+	 * life = charge
+	 * pavg[0] = rotation
+	 * pavg[1] = direction of travel (left or right)
+	 * 
+	 * If touched by a FIGH the FIGH will attempt to use the cybertruck to run down
+	 * the STKM and STK2
+	 */
+
+	// Collision checking and update
+	// We'll consider moving in the direction of velocity
+	// We only check collisions with 6 points on the rectangle that
+	// bounds the cybertruck
+	float ovx = parts[i].vx, ovy = parts[i].vy;
+	bool has_collision;
+	initial_collision(sim, parts, i, CYBERTRUCK, has_collision);
+
+	// Collision damage
+	if (has_collision && (fabs(ovx) > CYBERTRUCK.COLLISION_SPEED || fabs(ovy) > CYBERTRUCK.COLLISION_SPEED)) {
+		parts[i].life -= rand() % 25;
+	}
+
+	// Heat damage
+	if (parts[i].temp > 273.15f + 200.0f)
+		parts[i].life--;
+	if (parts[i].temp > 1000.0f)
+		parts[i].life = 0;
+
+	// Self destruction, leave a randomized cybertruck shaped pile of powder
+	if (parts[i].life <= 0) {
+		sim->kill_part(i);
+		return 0;
+	}
+
+	// If life <= 50 spawn sparks (EMBR)
+	if (parts[i].life <= 50) {
+		if (rand() % 50 == 0)
+			create_part(sim, CYBERTRUCK.WIDTH * 0.4f, -CYBERTRUCK.HEIGHT / 2, PT_EMBR, parts[i].pavg[0], parts, i);
+		if (rand() % 50 == 0)
+			create_part(sim, -CYBERTRUCK.WIDTH * 0.4f, -CYBERTRUCK.HEIGHT / 2, PT_EMBR, parts[i].pavg[0], parts, i);
+		if (rand() % 50 == 0)
+			create_part(sim, 0, -CYBERTRUCK.HEIGHT / 2, PT_EMBR, parts[i].pavg[0], parts, i);
+	}
+	// If life <= 25 spawn fire damage
+	if (parts[i].life <= 25 && rand() % 30 == 0) {
+		create_part(sim, -CYBERTRUCK.WIDTH * 0.4f, -CYBERTRUCK.HEIGHT / 2, PT_FIRE, parts[i].pavg[0], parts, i);
+	}
+
+	// Player controls
+	int cmd = 0, cmd2 = 0;
+	if (parts[i].tmp2 == 1 || parts[i].tmp2 == 2) {
+		int command = parts[i].tmp2 == 1 ? sim->player.comm : sim->player2.comm;
+		if (((int)command & 0x01) == 0x01) // Left
+			cmd = 1;
+		if (((int)command & 0x02) == 0x02) // Right
+			cmd = 2;
+		if (((int)command & 0x04) == 0x04) // Up (Exit)
+			cmd2 = 3;
+		if (((int)command & 0x08) == 0x08) // Down (fly / shoot)
+			cmd2 = 4;
+	}
 	
+	// Fighter AI
+	if (parts[i].tmp2 > 2) {
+		// Get target
+		int tarx = -1, tary = -1;
+		if (sim->player.spwn)
+			tarx = sim->player.legs[0], tary = sim->player.legs[1];
+		else if (sim->player2.spwn)
+			tarx = sim->player2.legs[0], tary = sim->player2.legs[1];
+		else if (sim->vehicle_p1 >= 0)
+			tarx = parts[sim->vehicle_p1].x, tary = parts[sim->vehicle_p1].y;
+		else if (sim->vehicle_p2 >= 0)
+			tarx = parts[sim->vehicle_p2].x, tary = parts[sim->vehicle_p2].y;
+
+		if (tarx > 0) {
+			// Flamethrower / bomb weapon
+			if (parts[i].tmp == 2 || parts[i].tmp == 3) {
+				cmd2 = 4;
+				parts[i].pavg[1] = tarx > parts[i].x;
+			}
+			// Rocket
+			else if (parts[i].tmp == 1) {
+				cmd = tarx > parts[i].x ? 2 : 1;
+				cmd2 = tary < parts[i].y ? 4 : 0;
+			}
+			// Run 'em over
+			else if (has_collision)
+				cmd = tarx > parts[i].x ? 2 : 1;
+		}
+	}
+
+	// Do controls
+	if (cmd != 0 || cmd2 != 0) {
+		if (has_collision || parts[i].tmp == 1) { // Accelerating only can be done on ground or if rocket
+			float vx = has_collision ? -CYBERTRUCK.SPEED : -CYBERTRUCK.FLY_SPEED / 8.0f, vy = 0.0f;
+			if (cmd == 1) { // Left
+				rotate(vx, vy, parts[i].pavg[0]);
+				parts[i].vx += vx;
+				parts[i].vy += vy;
+				parts[i].pavg[1] = 0; // Set face direction
+				parts[i].y -= 0.5;
+			}
+			if (cmd == 2) { // Right
+				vx *= -1;
+				rotate(vx, vy, parts[i].pavg[0]);
+				parts[i].vx += vx;
+				parts[i].vy += vy;
+				parts[i].pavg[1] = 1; // Set face direction
+				parts[i].y -= 0.5;
+			}
+		}
+
+		if (cmd2 == 3) { // Exit (up)
+			// Flag that cybertruck has no stkm
+			// Make sure new spawn location isn't too close or STKM
+			// will instantly re-enter
+			if (parts[i].tmp2 == 1) {
+				sim->vehicle_p1 = -1;
+				parts[i].tmp2 = 0;
+				sim->player.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM);
+				sim->player.elem = parts[i].ctype;
+				sim->player.rocketBoots = parts[i].tmp == 1;
+				return 0;
+			}
+			else if (parts[i].tmp2 == 2) {
+				sim->vehicle_p2 = -1;
+				parts[i].tmp2 = 0;
+				sim->player2.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM2);
+				sim->player2.elem = parts[i].ctype;
+				sim->player2.rocketBoots = parts[i].tmp == 1;
+				return 0;
+			}
+		}
+		if (cmd2 == 4) { // Fly or shoot (down)
+			if (parts[i].tmp == 1) { // Rocket
+				float vx = 0.0f, vy = -CYBERTRUCK.FLY_SPEED / 4.0f;
+				rotate(vx, vy, parts[i].pavg[0]);
+				parts[i].vx += vx;
+				parts[i].vy += vy;
+
+				int j1 = create_part(sim, CYBERTRUCK.WIDTH * 0.4f, CYBERTRUCK.HEIGHT / 2, PT_PLSM, parts[i].pavg[0], parts, i);
+				int j2 = create_part(sim, -CYBERTRUCK.WIDTH * 0.4f, CYBERTRUCK.HEIGHT / 2, PT_PLSM, parts[i].pavg[0], parts, i);
+				parts[j1].temp = parts[j2].temp = 400.0f;
+				parts[j1].life = rand() % 100 + 50;
+				parts[j2].life = rand() % 100 + 50;
+			}
+			else if (parts[i].tmp == 2) { // Flamethrower
+				int j = create_part(sim, -CYBERTRUCK.WIDTH * 0.4f, -CYBERTRUCK.HEIGHT / 2, PT_BCOL, parts[i].pavg[0], parts, i);
+				parts[j].life = rand() % 100 + 50;
+				parts[j].vx = parts[i].pavg[1] ? 15 : -15;
+				parts[j].vy = -(rand() % 3 + 3);
+				rotate(parts[j].vx, parts[j].vy, parts[i].pavg[0]);
+			}
+			else if (parts[i].tmp == 3 && sim->timer % 50 == 0) { // BOMB
+				int j = create_part(sim, -CYBERTRUCK.WIDTH * 0.4f, -CYBERTRUCK.HEIGHT / 2, PT_BOMB, parts[i].pavg[0], parts, i);
+				parts[j].life = rand() % 100 + 50;
+				parts[j].vx = parts[i].pavg[1] ? 10 : -10;
+				parts[j].vy = -(rand() % 3 + 3);
+				rotate(parts[j].vx, parts[j].vy, parts[i].pavg[0]);
+			}
+		}
+	}
+
+	update_vehicle(sim, parts, i, CYBERTRUCK, ovx, ovy);
 	return 0;
 }
 
 //#TPT-Directive ElementHeader Element_CYTK static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_CYTK::graphics(GRAPHICS_FUNC_ARGS) {
+	*cola = 0;
+
 	// The cybertruck is 46px wide and 14px tall
 	draw_cybertruck(ren, cpart, cpart->pavg[0]);
 	return 0;

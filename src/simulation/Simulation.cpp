@@ -2265,7 +2265,8 @@ void Simulation::clear_sim(void)
 	player2.spawnID = -1;
 	player2.rocketBoots = false;
 	player2.fan = false;
-	cybertruck_p1 = cybertruck_p2 = false;
+	vehicle_p1 = vehicle_p2 = -1;
+	vehicles.clear();
 	//memset(pers_bg, 0, WINDOWW*YRES*PIXELSIZE);
 	//memset(fire_r, 0, sizeof(fire_r));
 	//memset(fire_g, 0, sizeof(fire_g));
@@ -3082,9 +3083,9 @@ void Simulation::kill_part(int i)//kills particle number i
 	// Reset cybertruck flags for p1 p2 occupied
 	if (t == PT_CYTK) {
 		if (parts[i].tmp2 == 1)
-			cybertruck_p1 = false;
+			vehicle_p1 = -1;
 		if (parts[i].tmp2 == 2)
-			cybertruck_p2 = false;
+			vehicle_p2 = -1;
 	}
 
 	elementCount[t]--;
@@ -3141,7 +3142,7 @@ bool Simulation::part_change_type(int i, int x, int y, int t)
 int Simulation::create_part(int p, int x, int y, int t, int v)
 {
 	// Dont make STKM or STKM2 if inside of a cybertruck
-	if ((t == PT_STKM && cybertruck_p1) || (t == PT_STKM2 && cybertruck_p2))
+	if ((t == PT_STKM && vehicle_p1 >= 0) || (t == PT_STKM2 && vehicle_p2 >= 0))
 		return -1;
 
 	int i, oldType = PT_NONE;
@@ -3463,6 +3464,7 @@ void Simulation::UpdateParticles(int start, int end)
 		if (parts[i].type)
 		{
 			// Some elements update n times per frame
+			update_count = 0;
 			update_loop_begin:
 			++update_count;
 
