@@ -3467,6 +3467,7 @@ void Simulation::UpdateParticles(int start, int end)
 	float pGravX, pGravY, pGravD;
 	bool transitionOccurred;
 
+
 	// Update all moving solids before the particles
 	auto itr = MOVINGSOLID::solids.begin();
 	while (itr != MOVINGSOLID::solids.end()) {

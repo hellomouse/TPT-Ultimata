@@ -115,6 +115,10 @@ bool Element_CYTK::attempt_move(int x, int y, Simulation *sim, Particle *parts, 
 			}
 			parts[i].vx = 0;
 			parts[i].vy = 0;
+
+			// Tank destroys other vehicles
+			if (parts[i].type == PT_TANK && parts[*ov].type != PT_TANK)
+				parts[*ov].life = 0;
 			break;
 		}
 	}
@@ -237,6 +241,38 @@ void Element_CYTK::initial_collision(Simulation *sim, Particle *parts, int i, co
 		sim->vehicle_p2 = i;
 }
 
+///#TPT-Directive ElementHeader Element_CYTK static void get_target(Simulation *sim, Particle *parts, int &tarx, int &tary)
+void Element_CYTK::get_target(Simulation *sim, Particle *parts, int &tarx, int &tary) {
+	if (sim->player.spwn)
+		tarx = sim->player.legs[0], tary = sim->player.legs[1];
+	else if (sim->player2.spwn)
+		tarx = sim->player2.legs[0], tary = sim->player2.legs[1];
+	else if (sim->vehicle_p1 >= 0)
+		tarx = parts[sim->vehicle_p1].x, tary = parts[sim->vehicle_p1].y;
+	else if (sim->vehicle_p2 >= 0)
+		tarx = parts[sim->vehicle_p2].x, tary = parts[sim->vehicle_p2].y;
+}
+
+///#TPT-Directive ElementHeader Element_CYTK static void exit_vehicle(Simulation *sim, Particle *parts, int i, int x, int y)
+void Element_CYTK::exit_vehicle(Simulation *sim, Particle *parts, int i, int x, int y) {
+	// Flag that vehicle has no stkm
+	// Make sure new spawn location isn't too close or STKM
+	// will instantly re-enter
+	if (parts[i].tmp2 == 1) {
+		sim->vehicle_p1 = -1;
+		parts[i].tmp2 = 0;
+		sim->player.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM);
+		sim->player.elem = parts[i].ctype;
+		sim->player.rocketBoots = parts[i].tmp == 1;
+	}
+	else if (parts[i].tmp2 == 2) {
+		sim->vehicle_p2 = -1;
+		parts[i].tmp2 = 0;
+		sim->player2.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM2);
+		sim->player2.elem = parts[i].ctype;
+		sim->player2.rocketBoots = parts[i].tmp == 1;
+	}
+}
 
 //#TPT-Directive ElementHeader Element_CYTK static void update_vehicle(Simulation *sim, Particle *parts, int i, const Vehicle &v, float ovx, float ovy)
 void Element_CYTK::update_vehicle(Simulation *sim, Particle *parts, int i, const Vehicle &v, float ovx, float ovy) {
@@ -294,7 +330,6 @@ void Element_CYTK::update_vehicle(Simulation *sim, Particle *parts, int i, const
 //#TPT-Directive ElementHeader Element_CYTK static int update(UPDATE_FUNC_ARGS)
 int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 	// NOTE: CYBERTRUCK UPDATES TWICE PER FRAME
-
 	/**
 	 * Properties:
 	 * vx, vy (velocity)
@@ -367,14 +402,7 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 	if (parts[i].tmp2 > 2) {
 		// Get target
 		int tarx = -1, tary = -1;
-		if (sim->player.spwn)
-			tarx = sim->player.legs[0], tary = sim->player.legs[1];
-		else if (sim->player2.spwn)
-			tarx = sim->player2.legs[0], tary = sim->player2.legs[1];
-		else if (sim->vehicle_p1 >= 0)
-			tarx = parts[sim->vehicle_p1].x, tary = parts[sim->vehicle_p1].y;
-		else if (sim->vehicle_p2 >= 0)
-			tarx = parts[sim->vehicle_p2].x, tary = parts[sim->vehicle_p2].y;
+		get_target(sim, parts, tarx, tary);
 
 		if (tarx > 0) {
 			// Flamethrower / bomb weapon
@@ -415,25 +443,8 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 		}
 
 		if (cmd2 == 3) { // Exit (up)
-			// Flag that cybertruck has no stkm
-			// Make sure new spawn location isn't too close or STKM
-			// will instantly re-enter
-			if (parts[i].tmp2 == 1) {
-				sim->vehicle_p1 = -1;
-				parts[i].tmp2 = 0;
-				sim->player.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM);
-				sim->player.elem = parts[i].ctype;
-				sim->player.rocketBoots = parts[i].tmp == 1;
-				return 0;
-			}
-			else if (parts[i].tmp2 == 2) {
-				sim->vehicle_p2 = -1;
-				parts[i].tmp2 = 0;
-				sim->player2.stkmID = sim->create_part(-1, x - 15, y - 5, PT_STKM2);
-				sim->player2.elem = parts[i].ctype;
-				sim->player2.rocketBoots = parts[i].tmp == 1;
-				return 0;
-			}
+			exit_vehicle(sim, parts, i, x, y);
+			return 0;
 		}
 		if (cmd2 == 4) { // Fly or shoot (down)
 			if (parts[i].tmp == 1) { // Rocket
@@ -472,8 +483,6 @@ int Element_CYTK::update(UPDATE_FUNC_ARGS) {
 //#TPT-Directive ElementHeader Element_CYTK static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_CYTK::graphics(GRAPHICS_FUNC_ARGS) {
 	*cola = 0;
-
-	// The cybertruck is 46px wide and 14px tall
 	draw_cybertruck(ren, cpart, cpart->pavg[0]);
 	return 0;
 }

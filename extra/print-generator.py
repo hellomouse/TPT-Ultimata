@@ -1,6 +1,6 @@
 from PIL import Image
 
-im = Image.open("./cybertruck.png")
+im = Image.open("./kv2.png")
 w, h = im.size
 pix = list(im.getdata())
 data = []
@@ -15,7 +15,7 @@ for i, px in enumerate(pix):
 # Process to graphics
 out = ""
 # draw_str = "ren->addpixel(cpart->x + {x}, cpart->y + {y}, {r}, {g}, {b}, {a});\n"
-draw_str = "CYBERTRUCK_PIXELS.push_back(CyberPixel({x}, {y}, {r}, {g}, {b}));\n"
+draw_str = "VehiclePixel({x}, {y}, {r}, {g}, {b}),\n"
 
 for d in data:
 	x = d[0]
