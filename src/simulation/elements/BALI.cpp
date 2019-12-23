@@ -1,5 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include <cmath>
+#include <iostream>
 
 // SPOILERS
 // Do not read this element code unless
@@ -27,7 +28,13 @@ namespace BALI_DATA {
 		{825, 255, 255, 255}
 	};
 
-	void findBoundary(int life, int& colr, int& colg, int& colb) {
+	// Default ctypes to spawn with to destroy
+	const int NUM_DEFAULT_CTYPES = 13;
+	const int DEFAULT_CTYPES[NUM_DEFAULT_CTYPES] = {
+		PT_PLNT, PT_IRON, PT_METL, PT_IRON, PT_TTAN, PT_GOLD, PT_GLAS, PT_QRTZ, PT_BRCK, PT_CRMC,
+		PT_WOOD, PT_GOO, PT_SAND};
+
+	void findBoundary(int life, int& colr, int& colg, int& colb, int &cola) {
 		float lifediff;
 		int rdiff, bdiff, gdiff;
 
@@ -50,6 +57,7 @@ namespace BALI_DATA {
 			colr = (life - wavelengths[i][0]) / lifediff * rdiff + wavelengths[i][1];
 			colg = (life - wavelengths[i][0]) / lifediff * gdiff + wavelengths[i][2];
 			colb = (life - wavelengths[i][0]) / lifediff * bdiff + wavelengths[i][3];
+			cola = i == 0 ? (life - wavelengths[i][0]) / lifediff * 255 : 255;
 			return;
 		}
 
@@ -81,19 +89,12 @@ Element_BALI::Element_BALI()
 	Flammable = 0;
 	Explosive = 0;
 	Meltable = 0;
-	Hardness = 30;
-
-	Weight = 100;
-
-	Flammable = 0;
-	Explosive = 0;
-	Meltable = 1;
 	Hardness = 1;
 
 	Weight = 1;
 	HeatConduct = 251;
 	Description = "Ball Lightning. Actually a macroelectron, releases energy onto its ctype.";
-	Properties = TYPE_ENERGY;
+	Properties = TYPE_GAS;
 
 	Update = &Element_BALI::update;
 	Graphics = &Element_BALI::graphics;
@@ -104,27 +105,70 @@ Element_BALI::Element_BALI()
 void Element_BALI::create(ELEMENT_CREATE_FUNC_ARGS) {
 	sim->parts[i].tmp = RNG::Ref().between(600, 4999);
 	sim->parts[i].life = RNG::Ref().between(380, 625);
+
+	// Random ctype to destroy
+	sim->parts[i].ctype = BALI_DATA::DEFAULT_CTYPES[RNG::Ref().between(0, BALI_DATA::NUM_DEFAULT_CTYPES)];
 }
 
+//#TPT-Directive ElementHeader Element_BALI static int update(UPDATE_FUNC_ARGS)
 int Element_BALI::update(UPDATE_FUNC_ARGS) {
 	/**
 	 * Properties:
 	 * life = energy level
 	 * ctype = target element to act upon
 	 * tmp = Time before explosion
+	 * tmp2 = If not 0, will simply stay still and glow then disappear
 	 */
+
+	// Stay still if tmp2
+	if (parts[i].tmp2) {
+		parts[i].vx = parts[i].vy = 0;
+	}
+
 	int r, rx, ry;
 	float randInt = RNG::Ref().uniform01();
 
 	parts[i].tmp--;
-	if (parts[i].tmp == 0) {
+	if (parts[i].tmp <= 0 || parts[i].life <= 0) {
+		// Explode if enough power
+		if (parts[i].life > 100) {
+			// Create smoke and pressure
+			sim->pv[y / CELL][x / CELL] += 60.0f;
+			sim->create_part(-1, x - 1, y, PT_SMKE);
+			sim->create_part(-1, x + 1, y, PT_SMKE);
+			sim->create_part(-1, x, y - 1, PT_SMKE);
+			sim->create_part(-1, x, y + 1, PT_SMKE);
 
+			// Radius is equal to round(life / 20)
+			// Deletion radius caps out at 60 px
+			int radius = round(parts[i].life / 20.0f);
+			radius = radius > 60 ? 60 : radius;
+			int rsquared = radius * radius;
+
+			for (rx = -radius; rx <= radius; rx++)
+			for (ry = -radius; ry <= radius; ry++)
+				if (BOUNDS_CHECK) {
+					r = pmap[y + ry][x + rx];
+					if (!r) r = sim->photons[y + ry][x + rx];
+					if (!r) continue;
+
+					if (TYP(r) == parts[i].ctype && (rx * rx + ry * ry) <= rsquared) {
+						parts[ID(r)].life = parts[ID(r)].tmp = 15;
+						parts[ID(r)].tmp2 = 1;
+						parts[ID(r)].ctype = TYP(r);
+						sim->part_change_type(ID(r), x + rx, y + ry, PT_BALI);
+					}
+				}
+		}
+
+		if (parts[i].tmp2 && RNG::Ref().chance(1, 50)) // Turn to ash
+			sim->part_change_type(i, parts[i].x, parts[i].y, PT_BCOL);
+		else  // Actual BALI disappears
+			sim->kill_part(i);
+		return 0;
 	}
 
-	// if (sim->timer % 5 == 0)
-		parts[i].life++;
-
-	if (parts[i].life >= 0) {
+	if (parts[i].tmp2 == 0 && parts[i].life >= 0) {
 		for (rx = -3; rx <= 3; rx++)
 			for (ry = -3; ry <= 3; ry++)
 				if (BOUNDS_CHECK && (rx || ry)) {
@@ -133,22 +177,26 @@ int Element_BALI::update(UPDATE_FUNC_ARGS) {
 					if (!r) continue;
 
 					// Electric elements increase BALI's energy level
-					if (TYP(r) == PT_SPRK || TYP(r) == PT_LIGH || TYP(r) == PT_THDR || TYP(r) == PT_ELEC) {
+					// SPRK was removed since it can SPRK elements and
+					// supercharge itself
+					if (TYP(r) == PT_ELEC)
 						parts[i].life++;
-					}
+					else if (TYP(r) == PT_LIGH || TYP(r) == PT_THDR)
+						parts[i].life += RNG::Ref().between(380, 600);
 
-					// BALI absorbs other BALI
-					if (TYP(r) == PT_BALI) {
+					// BALI absorbs other BALI only if this has more energy
+					if (TYP(r) == PT_BALI && parts[i].life >= parts[ID(r)].life) {
 						parts[i].life += parts[ID(r)].life;
 						sim->kill_part(ID(r));
 						return 0;
 					}
 
 					// Randomly spark elements if there are
-					if (randInt < 0.01) {
-						if (sim->elements[ID(r)].Properties & PROP_CONDUCTS) {
+					if (randInt < 0.05f) {
+						if (sim->elements[TYP(r)].Properties & PROP_CONDUCTS) {
+							parts[i].life -= 10;
 							parts[ID(r)].life = 4;
-							parts[ID(r)].ctype = ID(r);
+							parts[ID(r)].ctype = TYP(r);
 							sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
 						}
 					}
@@ -159,17 +207,39 @@ int Element_BALI::update(UPDATE_FUNC_ARGS) {
 
 //#TPT-Directive ElementHeader Element_BALI static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_BALI::graphics(GRAPHICS_FUNC_ARGS) {
+	// Stand still and glow, we can just glow this 1 px
+	if (cpart->tmp2) {
+		*pixel_mode |= FIRE_ADD;
+		*colr = *colg = *colb = 255;
+		*firer = *fireg = *fireb = 255;
+		*firea = 100;
+		return 0;
+	}
+
 	*colr = *colg = *colb = 0;
 	*cola = 255; // Black
 
-	BALI_DATA::findBoundary(cpart->life, *colr, *colg, *colb);
+	// Set current color
+	BALI_DATA::findBoundary(cpart->life, *colr, *colg, *colb, *cola);
+	int rx, ry, r;
 
-	// (cx + rcos(theta), cy + rsin(theta))
-	int radius = 6;
-	for (float angle = 0.0f; angle < 6.28f; angle += 0.1f) {
-		ren->addpixel(nx + (radius * cos(angle)) + 0.5f, ny + (radius * sin(angle)) + 0.5f, *colr, *colg, *colb, 96);
-	}
-	*colr = *colg = *colb = *cola = 0;
+	// Radius of inner circle, pulsates between 3 and 5
+	int FOUR_RADIUS = 4 + sin(ren->sim->timer / 100.0f);
+	FOUR_RADIUS *= FOUR_RADIUS;
+
+	for (rx = -6; rx <= 6; ++rx)
+	for (ry = -6; ry <= 6; ++ry)
+		if (BOUNDS_CHECK) {
+			r = rx * rx + ry * ry;
+			r *= (1 + 1.5f * RNG::Ref().uniform01());
+			if (r <= FOUR_RADIUS) // Radius 4, pulsates. White glow inside
+				Element_EXFN::draw_glowy_pixel(ren, cpart->x + rx, cpart->y + ry, 255, 255, 255, *cola);
+			else if (r <= 36) // Radius 6, outer glow (colored)
+				Element_EXFN::draw_glowy_pixel(ren, cpart->x + rx, cpart->y + ry, *colr, *colg, *colb, *cola);
+		}
+
+	// Actual middle particle is invisible, make it white to blend in if its white
+	if (*cola != 0) *colr = *colg = *colb = 255;
 	return 0;
 }
 

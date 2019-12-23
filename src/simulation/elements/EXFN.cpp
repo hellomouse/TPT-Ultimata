@@ -20,36 +20,6 @@ namespace EXFN_DATA {
 		return result == pavg || result == flags - pavg;
 	}
 
-	void draw_glowy_pixel(Renderer *ren, int nx, int ny, int colr, int colg, int colb, int cola) {
-		// Non-glowy render mode
-		if (ren->colour_mode & COLOUR_HEAT || !(ren->render_mode & PMODE_GLOW)) {
-			ren->addpixel(nx, ny, colr, colg, colb, cola);
-			return;
-		}
-
-		int cola1 = (5 * cola) / 255;
-		ren->addpixel(nx, ny, colr, colg, colb, (192*cola)/255);
-		ren->addpixel(nx+1, ny, colr, colg, colb, (96*cola)/255);
-		ren->addpixel(nx-1, ny, colr, colg, colb, (96*cola)/255);
-		ren->addpixel(nx, ny+1, colr, colg, colb, (96*cola)/255);
-		ren->addpixel(nx, ny-1, colr, colg, colb, (96*cola)/255);
-
-		for (int x = 1; x < 6; x++) {
-			ren->addpixel(nx, ny-x, colr, colg, colb, cola1);
-			ren->addpixel(nx, ny+x, colr, colg, colb, cola1);
-			ren->addpixel(nx-x, ny, colr, colg, colb, cola1);
-			ren->addpixel(nx+x, ny, colr, colg, colb, cola1);
-			for (int y = 1; y < 6; y++) {
-				if(x + y > 7)
-					continue;
-				ren->addpixel(nx+x, ny-y, colr, colg, colb, cola1);
-				ren->addpixel(nx-x, ny+y, colr, colg, colb, cola1);
-				ren->addpixel(nx+x, ny+y, colr, colg, colb, cola1);
-				ren->addpixel(nx-x, ny-y, colr, colg, colb, cola1);
-			}
-		}
-	}
-
 	void set_directions(int &spawndx, int &spawndy, int &initx, int &inity, int &dir, int x, int y, int tmp) {
 		dir = tmp;
 		if (is_up(dir)) {
@@ -110,6 +80,39 @@ Element_EXFN::Element_EXFN()
 	Update = &Element_EXFN::update;
 	Graphics = &Element_EXFN::graphics;
 }
+
+//#TPT-Directive ElementHeader Element_EXFN static void draw_glowy_pixel(Renderer *ren, int nx, int ny, int colr, int colg, int colb, int cola)
+void Element_EXFN::draw_glowy_pixel(Renderer *ren, int nx, int ny, int colr, int colg, int colb, int cola) {
+		// Non-glowy render mode
+		if (ren->colour_mode & COLOUR_HEAT || !(ren->render_mode & PMODE_GLOW)) {
+			ren->addpixel(nx, ny, colr, colg, colb, cola);
+			return;
+		}
+
+		int cola1 = (5 * cola) / 255;
+		ren->addpixel(nx, ny, colr, colg, colb, (192*cola)/255);
+		ren->addpixel(nx+1, ny, colr, colg, colb, (96*cola)/255);
+		ren->addpixel(nx-1, ny, colr, colg, colb, (96*cola)/255);
+		ren->addpixel(nx, ny+1, colr, colg, colb, (96*cola)/255);
+		ren->addpixel(nx, ny-1, colr, colg, colb, (96*cola)/255);
+
+		for (int x = 1; x < 6; x++) {
+			ren->addpixel(nx, ny-x, colr, colg, colb, cola1);
+			ren->addpixel(nx, ny+x, colr, colg, colb, cola1);
+			ren->addpixel(nx-x, ny, colr, colg, colb, cola1);
+			ren->addpixel(nx+x, ny, colr, colg, colb, cola1);
+			for (int y = 1; y < 6; y++) {
+				if(x + y > 7)
+					continue;
+				ren->addpixel(nx+x, ny-y, colr, colg, colb, cola1);
+				ren->addpixel(nx-x, ny+y, colr, colg, colb, cola1);
+				ren->addpixel(nx+x, ny+y, colr, colg, colb, cola1);
+				ren->addpixel(nx-x, ny-y, colr, colg, colb, cola1);
+			}
+		}
+	}
+
+
 
 //#TPT-Directive ElementHeader Element_EXFN static int update(UPDATE_FUNC_ARGS)
 int Element_EXFN::update(UPDATE_FUNC_ARGS) {
@@ -296,16 +299,16 @@ int Element_EXFN::draw_beam(GRAPHICS_FUNC_ARGS) {
 			}
 
 			if (EXFN_DATA::is_part_of_wave(cpart->flags, period, delta, direction_multiplier, ren->sim->timer, 0, cpart->pavg[0]))
-				EXFN_DATA::draw_glowy_pixel(ren, initx, inity, r, g, b, 255);
+				Element_EXFN::draw_glowy_pixel(ren, initx, inity, r, g, b, 255);
 
 			// The portal 2 graphics have another 3rd wave offset
 			// about 1/3 of a period with a different color
 			if (EXFN_DATA::is_part_of_wave(cpart->flags, period, delta, direction_multiplier, ren->sim->timer, period / 3, cpart->pavg[0]))
-				EXFN_DATA::draw_glowy_pixel(ren, initx, inity, r, g, b, 80);
+				Element_EXFN::draw_glowy_pixel(ren, initx, inity, r, g, b, 80);
 
 			// Scanning lines
 			if (EXFN_DATA::is_part_of_wave(cpart->flags, period, delta_reverse, direction_multiplier, ren->sim->timer, 0, cpart->pavg[0]))
-				EXFN_DATA::draw_glowy_pixel(ren, initx, inity, r, g, b, 80);
+				Element_EXFN::draw_glowy_pixel(ren, initx, inity, r, g, b, 80);
 
 			initx += spawndx;
 			inity += spawndy;
