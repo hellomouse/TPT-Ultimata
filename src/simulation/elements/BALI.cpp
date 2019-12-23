@@ -1,5 +1,10 @@
 #include "simulation/ElementCommon.h"
 #include <cmath>
+#include "common/tpt-rand.h"
+
+// SPOILERS
+// Do not read this element code unless
+// you want to be spoiled for Liu Cixin's Ball Lightning (novel)
 
 
 // Ball lightning
@@ -24,6 +29,10 @@ namespace BALI_DATA {
 	void findBoundary(int life, int& colr, int& colg, int& colb) {
 		float lifediff;
 		if (life < 380) return;
+		if (life > 625) {
+			colr = colg = colb = 255;
+			return;
+		}
 		for (unsigned int i = 0; i < 7; ++i) {
 			if (life > wavelengths[i][0]) continue;
 
@@ -74,21 +83,32 @@ Element_BALI::Element_BALI()
 
 	HeatConduct = 251;
 	Description = "Ball Lightning. Actually a macroelectron";
-
 	Properties = PROP_CONDUCTS | PROP_HOT_GLOW;
 
 	// element properties here
 
 	Update = &Element_BALI::update;
 	Graphics = &Element_BALI::graphics;
+	Create = &Element_BALI::create;
+}
+
+//#TPT-Directive ElementHeader Element_BALI static void create(ELEMENT_CREATE_FUNC_ARGS)
+void Element_BALI::create(ELEMENT_CREATE_FUNC_ARGS) {
+	sim->parts[i].tmp = RNG::Ref().between(0, 9999);
+	sim->parts[i].life = RNG::Ref().between(380, 625);
 }
 
 //#TPT-Directive ElementHeader Element_BALI static int update(UPDATE_FUNC_ARGS)
 int Element_BALI::update(UPDATE_FUNC_ARGS)
 {
 	int r, rx, ry, id;
-	float randInt = (float) rand() / 100000;
-	if (parts[i].life >= 0 && randInt < 0.001) {
+	parts[i].tmp--;
+
+	if (parts[i].tmp == 0) {
+
+	}
+
+	if (parts[i].life >= 0 && RNG::Ref().chance(1, 100)) {
 		for (rx = -3; rx <= 3; rx++)
 			for (ry = -3; ry <= 3; ry++)
 				if (BOUNDS_CHECK && (rx || ry)) {
@@ -99,10 +119,8 @@ int Element_BALI::update(UPDATE_FUNC_ARGS)
 						parts[ID(r)].ctype = ID(r);
 						sim->part_change_type(ID(r), x + rx, y + ry, PT_SPRK);
 					}
-					else {
-						sim->create_part(-3, x, y, PT_LIGH);
-					}
 				}
+		parts[i].life--;
 		return 0;
 	}
 
@@ -115,6 +133,10 @@ int Element_BALI::update(UPDATE_FUNC_ARGS)
 
 				if (TYP(r) == PT_SPRK || TYP(r) == PT_LIGH) {
 					parts[i].life++;
+				}
+				else if (TYP(r) == PT_BALI) {
+					parts[i].life += parts[id].life;
+					sim->kill_part(id);
 				}
 			}
 
