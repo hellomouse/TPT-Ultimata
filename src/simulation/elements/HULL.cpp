@@ -1,4 +1,6 @@
 #include "simulation/ElementCommon.h"
+#include "simulation/Spaceship.h"
+
 
 //#TPT-Directive ElementClass Element_HULL PT_HULL 212
 Element_HULL::Element_HULL()
@@ -14,12 +16,21 @@ Element_HULL::Element_HULL()
 
 	Update = &Element_HULL::update;
 	Graphics = &Element_HULL::graphics;
+	Create = &Element_HULL::create;
+}
+
+//#TPT-Directive ElementHeader Element_HULL static void create(ELEMENT_CREATE_FUNC_ARGS)
+void Element_HULL::create(ELEMENT_CREATE_FUNC_ARGS)
+{
+	SHIPS::cloneTMP(sim, i, x, y);
 }
 
 //#TPT-Directive ElementHeader Element_HULL static int update(UPDATE_FUNC_ARGS)
 int Element_HULL::update(UPDATE_FUNC_ARGS)
 {
-	// update code here
+	if (!parts[i].tmp) {
+		SHIPS::cloneTMP(sim, i, x, y);
+	}
 
 	return 0;
 }
