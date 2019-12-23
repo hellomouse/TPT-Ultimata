@@ -23,6 +23,7 @@ Element_HULL::Element_HULL()
 void Element_HULL::create(ELEMENT_CREATE_FUNC_ARGS)
 {
 	SHIPS::cloneTMP(sim, i, x, y);
+	sim->parts[i].tmp2 = 0;
 }
 
 //#TPT-Directive ElementHeader Element_HULL static int update(UPDATE_FUNC_ARGS)
@@ -30,6 +31,7 @@ int Element_HULL::update(UPDATE_FUNC_ARGS)
 {
 	if (!parts[i].tmp) {
 		SHIPS::cloneTMP(sim, i, x, y);
+		sim->parts[i].tmp2 = 1;
 	}
 
 	return 0;
