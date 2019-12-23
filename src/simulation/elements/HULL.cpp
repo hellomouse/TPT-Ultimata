@@ -22,16 +22,16 @@ Element_HULL::Element_HULL()
 //#TPT-Directive ElementHeader Element_HULL static void create(ELEMENT_CREATE_FUNC_ARGS)
 void Element_HULL::create(ELEMENT_CREATE_FUNC_ARGS)
 {
-	SHIPS::cloneTMP(sim, i, x, y);
-	sim->parts[i].tmp2 = 0;
+	sim->parts[i].pavg[0] = -1;
+	SHIPS::clonePAVG(sim, i, x, y);
+	
 }
 
 //#TPT-Directive ElementHeader Element_HULL static int update(UPDATE_FUNC_ARGS)
 int Element_HULL::update(UPDATE_FUNC_ARGS)
 {
-	if (!parts[i].tmp) {
-		SHIPS::cloneTMP(sim, i, x, y);
-		sim->parts[i].tmp2 = 1;
+	if (parts[i].pavg[0] < 0) {
+		SHIPS::clonePAVG(sim, i, x, y);
 	}
 
 	return 0;

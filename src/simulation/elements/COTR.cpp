@@ -27,7 +27,7 @@ Element_COTR::Element_COTR()
 
 //#TPT-Directive ElementHeader Element_COTR static void create(ELEMENT_CREATE_FUNC_ARGS)
 void Element_COTR::create(ELEMENT_CREATE_FUNC_ARGS) {
-	SHIPS::ships.push_back(i);
+	SHIPS::createShip(i);
 }
 
 //#TPT-Directive ElementHeader Element_COTR static int update(UPDATE_FUNC_ARGS)
