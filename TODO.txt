@@ -1,8 +1,17 @@
-
-Readd FREZ from my mod
-
-
 ball lightning
+
+
+Lanthanum-this ones exciting, for I could see this bridging the gap between solids and solid explosives.
+ I was thinking that this element would be a solid metal that when exposed to high temperature flame,
+  It would release small pieces of bomb and flame, somewhat like thermite and TNT combined.
+   It would only explode into such pieces in small sections at a time. Like regular metal except it's
+    slightly explosive. This one needs more work.
+
+NEON
+
+Carbon uses:
+- turns to realistic diamond under pressure and heat
+- crumbles into coal
 
 
 realistic stars 
@@ -26,7 +35,7 @@ mass can be sucked away by gravity
 
 
 
-Add SUGR and NPLM to wiki
+Add SUGR to wiki
 
 
 force field generator 

@@ -86,7 +86,7 @@ Element_BALI::Element_BALI()
 //#TPT-Directive ElementHeader Element_BALI static int update(UPDATE_FUNC_ARGS)
 int Element_BALI::update(UPDATE_FUNC_ARGS)
 {
-	int r, rx, ry, id;
+	int r, rx, ry;
 	float randInt = (float) rand() / 100000;
 	if (parts[i].life >= 0 && randInt < 0.001) {
 		for (rx = -3; rx <= 3; rx++)
@@ -111,7 +111,6 @@ int Element_BALI::update(UPDATE_FUNC_ARGS)
 			if (BOUNDS_CHECK && (rx || ry)) {
 				r = pmap[y + ry][x + rx];
 				if (!r) continue;
-				id = ID(r);
 
 				if (TYP(r) == PT_SPRK || TYP(r) == PT_LIGH) {
 					parts[i].life++;
