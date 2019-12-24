@@ -12,13 +12,17 @@ Properties:
 namespace SHIPS {
 	
 	std::unordered_map<int, std::vector<int>> ships;
-	std::array<int, NUMSHIPCOMPONENTS> components{ PT_COTR, PT_HULL, PT_THRS };
+	std::array<int, NUMSHIPCOMPONENTS> components{ PT_COTR, PT_NAVI, PT_LASR, PT_HULL, PT_THRS, PT_RADR };
+	std::unordered_map<int, std::array<float, 2>> acceleration;
 
 	void createShip(int id) {
 		ships[id] =  {};
+		acceleration[id] = { 0, 0 };
 	}
 
 	void translate(Simulation* sim, int id) {
+		sim->parts[id].pavg[0] += acceleration[id][0];
+		sim->parts[id].pavg[1] += acceleration[id][1];
 		int rx = sim->parts[id].pavg[0];
 		int ry = sim->parts[id].pavg[1];
 		sim->parts[id].x += rx;
