@@ -38,6 +38,6 @@ Note that any heat damage can only be detected by the =core (the center pixel), 
 
 **life:** Health, starts at 600.
 
-**pavg[0]:** Rotation in radians, 0 = flat facing to right
+**pavg[0]:** Rotation in radians, 0 = flat facing to left
 
-**pavg[1]:** Direction of travel, 0 = right, 1 = left
+**pavg[1]:** Direction of travel, 0 = left, 1 = right

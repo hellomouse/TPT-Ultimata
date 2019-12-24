@@ -71,7 +71,7 @@ Element_BALI::Element_BALI()
 {
 	Identifier = "DEFAULT_PT_BALI";
 	Name = "BALI";
-	Colour = PIXPACK(0xffa6a6);
+	Colour = PIXPACK(0xDFEFFF);
 	MenuVisible = 1;
 	MenuSection = SC_EXPLOSIVE;
 	Enabled = 1;
