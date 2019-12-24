@@ -1,5 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include "simulation/Spaceship.h"
+#include "simulation/Thruster.h"
 #include "common/tpt-rand.h"
 //#include <bits/stdc++.h>
 #include <climits>
@@ -24,13 +25,24 @@ Element_COTR::Element_COTR()
 //#TPT-Directive ElementHeader Element_COTR static void create(ELEMENT_CREATE_FUNC_ARGS)
 void Element_COTR::create(ELEMENT_CREATE_FUNC_ARGS) {
 	SHIPS::createShip(i);
+	sim->parts[i].tmp = 0; // If COTR should send a signal
 }
 
 //#TPT-Directive ElementHeader Element_COTR static int update(UPDATE_FUNC_ARGS)
 int Element_COTR::update(UPDATE_FUNC_ARGS)
 {
-	// update code here
+	if (!sim->parts[i].tmp) {
+		sim->parts[i].tmp = 1;
+		for (auto component : SHIPS::ships[i]) {
+			if (sim->parts[component].type != PT_THRS) continue;
+				THRUSTERS::calculateThrust(sim, component); // This should be called from THRS.cpp when it detects the MOVE signal from FILT
+		}
+		return 0;
+	}
+	
 	SHIPS::translate(sim, i);
+
+	sim->parts[i].tmp = 0;
 	return 0;
 }
 
@@ -39,7 +51,6 @@ int Element_COTR::graphics(GRAPHICS_FUNC_ARGS)
 {
 	// graphics code here
 	// return 1 if nothing dymanic happens here
-
 	return 0;
 }
 
