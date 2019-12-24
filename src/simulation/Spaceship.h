@@ -1,6 +1,6 @@
 #ifndef SPACESHIP_H
 #define SPACESHIP_H
-#define NUMSHIPCOMPONENTS 6
+#define NUMSHIPCOMPONENTS 7
 
 #include "simulation/ElementCommon.h"
 #include <unordered_map>

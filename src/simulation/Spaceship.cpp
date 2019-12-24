@@ -12,7 +12,7 @@ Properties:
 namespace SHIPS {
 	
 	std::unordered_map<int, std::vector<int>> ships;
-	std::array<int, NUMSHIPCOMPONENTS> components{ PT_COTR, PT_NAVI, PT_LASR, PT_HULL, PT_THRS, PT_RADR };
+	std::array<int, NUMSHIPCOMPONENTS> components{ PT_COTR, PT_NAVI, PT_LASR, PT_HULL, PT_THRS, PT_RADR, PT_FILT };
 	std::unordered_map<int, std::array<float, 2>> acceleration;
 
 	void createShip(int id) {
