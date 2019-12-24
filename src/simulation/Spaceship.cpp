@@ -1,5 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include "simulation/Spaceship.h"
+#include "simulation/Thruster.h"
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
@@ -20,13 +21,26 @@ namespace SHIPS {
 		acceleration[id] = { 0, 0 };
 	}
 
+	void calculateAcceleration(Simulation* sim, int id) {
+		for (auto component : ships[id]) {
+			if (sim->parts[component].type != PT_THRS) continue; // We only need to find thrusters
+			// Add the acceleration calculated by each thruster to the acceleration pair of the body
+			acceleration[id].first += THRUSTERS::thrusters[component].first;
+			acceleration[id].second += THRUSTERS::thrusters[component].second;
+			THRUSTERS::thrusters[component].first = 0;
+			THRUSTERS::thrusters[component].second = 0;
+		}
+	}
+
 	void translate(Simulation* sim, int id) {
-		sim->parts[id].pavg[0] += acceleration[id].first;
-		sim->parts[id].pavg[1] += acceleration[id].second;
-		int rx = sim->parts[id].pavg[0];
+		calculateAcceleration(sim, id); // Calculate net acceleration from accelertion calculated and stored in each thruster
+		sim->parts[id].pavg[0] += acceleration[id].first; // Add acceleration in x to velocity x
+		sim->parts[id].pavg[1] += acceleration[id].second; // Add acceleration in y to velocity y
+		int rx = sim->parts[id].pavg[0]; // Velocity of body to add
 		int ry = sim->parts[id].pavg[1];
-		sim->parts[id].x += rx;
+		sim->parts[id].x += rx; // Teleport COTR because it's not in the components vector
 		sim->parts[id].y += ry;
+		// Teleport the body component by component
 		for (auto itr = ships[id].begin(); itr != ships[id].end(); ++itr) {
 			sim->parts[*itr].x += rx;
 			sim->parts[*itr].y += ry;
