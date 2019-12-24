@@ -5,16 +5,12 @@
 #include <climits>
 #include <vector>
 
-// namespace COTR_DATA {
-// 	std::vector<int> ships;
-// }
-
 //#TPT-Directive ElementClass Element_COTR PT_COTR 208
 Element_COTR::Element_COTR()
 {
 	Identifier = "DEFAULT_PT_COTR";
 	Name = "COTR";
-	Colour = PIXPACK(0xFFFFFF);
+	Colour = PIXPACK(0xAAAAAA);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
@@ -34,7 +30,7 @@ void Element_COTR::create(ELEMENT_CREATE_FUNC_ARGS) {
 int Element_COTR::update(UPDATE_FUNC_ARGS)
 {
 	// update code here
-
+	SHIPS::translate(sim, i);
 	return 0;
 }
 
