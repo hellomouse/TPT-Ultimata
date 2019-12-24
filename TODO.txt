@@ -34,13 +34,6 @@ mass can be sucked away by gravity
 
 
 
-Add SUGR to wiki
-
-
-force field generator 
-- default: realistic 
-- flag to be unrealistic
-
 
 MOVING SOLIDS 
 --------------------------
@@ -58,8 +51,14 @@ use RNG::Ref()
 
 
 
-BALI create CARBON
+Write guide for FFGN
+Add SUGR to wiki
 
+
+
+force field generator 
+- default: realistic 
+- flag to be unrealistic
 FFGN coat like SHLD
 
 
