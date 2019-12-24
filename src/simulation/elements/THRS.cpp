@@ -1,5 +1,6 @@
 #include "simulation/ElementCommon.h"
 #include "simulation/Spaceship.h"
+#include "simulation/Thruster.h"
 #include <math.h>
 #include <vector>
 
@@ -7,7 +8,6 @@
 
 namespace THRUSTERS {
 	std::unordered_map<int, std::pair<float, float>> thrusters;
-
 	std::vector<std::pair<int, int>> direction(Simulation* sim, int i, int x, int y) {
 		int r, rx, ry;
 		std::vector <std::pair<int, int>> accelerationEfficiency;
@@ -32,7 +32,7 @@ namespace THRUSTERS {
 		THRUSTERS::thrusters[i].second = 0;
 
 		int numDirections;
-		std::array<float, 2> thrust_acceleration = { 0.001, 0.001 };
+		std::array<float, 2> thrust_acceleration = { THRUSTERS::thrusterAcceleration, THRUSTERS::thrusterAcceleration };
 		std::vector<std::pair<int, int>> directions = THRUSTERS::direction(sim, i, x, y);
 		numDirections = directions.size();
 		if (numDirections) {

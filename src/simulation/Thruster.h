@@ -6,6 +6,7 @@
 #define THRUSTER_H
 
 namespace THRUSTERS {
+	const float thrusterAcceleration = 0.01;
 	std::vector<std::pair<int, int>> direction(Simulation* sim, int i, int x, int y);
 	void calculateThrust(Simulation* sim, int i);
 	std::vector<std::pair<int, int>> direction(Simulation* sim, int i, int x, int y);

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+#include <math.h>
 
 /**
 Properties:
@@ -25,6 +26,10 @@ namespace SHIPS {
 		for (auto component : ships[id]) {
 			if (sim->parts[component].type != PT_THRS) continue; // We only need to find thrusters
 			// Add the acceleration calculated by each thruster to the acceleration pair of the body
+			if (std::fabs(THRUSTERS::thrusters[component].first) < (THRUSTERS::thrusterAcceleration / 8))
+				THRUSTERS::thrusters[component].first = 0;
+			if (std::fabs(THRUSTERS::thrusters[component].second) < (THRUSTERS::thrusterAcceleration / 8))
+				THRUSTERS::thrusters[component].second = 0;
 			acceleration[id].first += THRUSTERS::thrusters[component].first;
 			acceleration[id].second += THRUSTERS::thrusters[component].second;
 			THRUSTERS::thrusters[component].first = 0;
