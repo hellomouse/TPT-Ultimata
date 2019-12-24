@@ -5,7 +5,7 @@ Element_THRS::Element_THRS()
 {
 	Identifier = "DEFAULT_PT_THRS";
 	Name = "THRS";
-	Colour = PIXPACK(0xFFFFFF);
+	Colour = PIXPACK(0x030163);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;

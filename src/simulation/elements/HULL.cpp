@@ -7,7 +7,7 @@ Element_HULL::Element_HULL()
 {
 	Identifier = "DEFAULT_PT_HULL";
 	Name = "HULL";
-	Colour = PIXPACK(0xFFFFFF);
+	Colour = PIXPACK(0x77777a);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;

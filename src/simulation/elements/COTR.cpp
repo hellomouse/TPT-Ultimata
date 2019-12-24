@@ -10,7 +10,7 @@ Element_COTR::Element_COTR()
 {
 	Identifier = "DEFAULT_PT_COTR";
 	Name = "COTR";
-	Colour = PIXPACK(0xAAAAAA);
+	Colour = PIXPACK(0x5c0e0e);
 	MenuVisible = 1;
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
