@@ -24,7 +24,7 @@ Element_SUGR::Element_SUGR()
 	Explosive = 0;
 	Meltable = 2;
 	Hardness = 2;
-	Description = "Sugar.";
+	Description = "Sugar. Great food for bacteria.";
 
 	Properties = TYPE_PART;
 
@@ -34,28 +34,8 @@ Element_SUGR::Element_SUGR()
 	HighPressureTransition = NT;
 	LowTemperature = ITL;
 	LowTemperatureTransition = NT;
-	HighTemperature = ITH;
-	HighTemperatureTransition = NT;
-
-	Update = &Element_SUGR::update;
-	Graphics = &Element_SUGR::graphics;
-}
-
-//#TPT-Directive ElementHeader Element_SUGR static int update(UPDATE_FUNC_ARGS)
-int Element_SUGR::update(UPDATE_FUNC_ARGS)
-{
-	// update code here
-
-	return 0;
-}
-
-//#TPT-Directive ElementHeader Element_SUGR static int graphics(GRAPHICS_FUNC_ARGS)
-int Element_SUGR::graphics(GRAPHICS_FUNC_ARGS)
-{
-	// graphics code here
-	// return 1 if nothing dymanic happens here
-
-	return 0;
+	HighTemperature = 273.15f + 186.0f;
+	HighTemperatureTransition = PT_LAVA;
 }
 
 Element_SUGR::~Element_SUGR() {}

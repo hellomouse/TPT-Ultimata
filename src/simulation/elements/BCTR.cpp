@@ -1,4 +1,60 @@
 #include "simulation/ElementCommon.h"
+#include <iostream>
+
+#define DIE() {parts[i].tmp2=1;return 0;}
+#define EAT(other) {\
+	sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, RNG::Ref().chance(1, 30) ? other : PT_NONE);\
+	parts[i].life += BCTR::FOOD_LIFE;}
+
+namespace BCTR {
+	const int TEMP_RES_MULTI = 5;
+	const int ENERGY_MULTI = 20;
+	const int FOOD_LIFE = 80;
+	const int START_LIFE = 110;
+	const int AGE_MULTI = 90;
+	const int AGE_BASE = 300;
+	const int MUTATION_RATE = 1; // Higher = less mutations
+
+	/**
+	 * Return an int represented by the bits of the target
+	 * from start to end, for example if target was
+	 * 000100 and we extracted from 0 to 3, we would get 0001 = 1
+	 * 
+	 * Assumes 32-bit int
+	 */
+	int extract_bits(int target, int start, int end) {
+		if (start < 0) start = 0;
+		if (end > 31) end = 31;
+		if (target == 0) return 0;
+
+		unsigned int mask = 0;
+		for (int t = start; t <= end; ++t)
+			mask |= 1 << t;
+		return (target & mask) >> start;
+	}
+
+	/**
+	 * Apply a random mutation to a target gene
+	 */
+	int mutate(int gene) {
+		// Random flip a bit if mutation allows it
+		if (RNG::Ref().chance(0, MUTATION_RATE) != 0)
+			return gene;
+		return gene ^ (1 << RNG::Ref().between(0, 32));
+	}
+
+	void extract_genes(int gene, int &restype, int &resval, int &foodtype, int &metabolism, int &spread,
+			int &move, int &sense, bool &glow) {
+		restype = extract_bits(gene, 0, 3);
+		resval = extract_bits(gene, 4, 7);
+		foodtype = extract_bits(gene, 8, 11);
+		metabolism = extract_bits(gene, 12, 15);
+		spread = extract_bits(gene, 16, 19);
+		move = extract_bits(gene, 20, 22);
+		sense = extract_bits(gene, 23, 25);
+		glow = extract_bits(gene, 26, 26);
+	}
+}
 
 /*
 Bacteria features:
@@ -6,6 +62,46 @@ Bacteria features:
 - Dies if temperature is too high or low
 - Dies if touches SOAP
 - Infects STKM
+
+Life stores energy value
+
+tmp stores "age", time to life determined by metabolism: (15 - metabolism) * AGE_MULTI + AGE_BASE
+
+tmp2 is if the bacteria is dead
+
+Genes are stored in ctype
+Also see GameView.cpp
+4:  0000  - Resistance type (See below)
+			1 = HEAT
+			2 = COLD
+			3 = VIRS
+			4 = SOAP
+			5 = ACID
+			6 = Being EATEN
+			7 = Radiation
+8:  0000  - Resistance value (0 - 15, 0 = no resistance)
+12: 0000  - Food type (See below)
+			(Not listed) = SUGR
+			1 = YEST / DYST
+			2 = PLNT / WOOD / SAWD
+			3 = PHOT or BRAY
+			4 = NEUT / ELEC / PROT
+			5 = BCTR
+			6 = Thermal energy
+16: 0000  - Metabolism speed (0 - 15, 0 = no growth) not including other gene modifiers
+	   	    Energy storage is inversely proportional to metabolism
+20: 0000  - Spread vector
+			(Not listed) - Default liquid
+			1 - Stick to solids and powders
+			2 - Float through the air
+			3 - Randomly swap with liquid particles
+			4 - 
+23: 000   - Move speed (increased energy cost, 0 - 7)
+26: 000   - Graphics (fuzziness?)
+27: 0     - Glow in the dark?
+31: 00000 - Unused
+
+Will pass on dcolour to children
 
 Genes:
 - Resistances:
@@ -52,22 +148,22 @@ Element_BCTR::Element_BCTR()
 	MenuSection = SC_SPECIAL;
 	Enabled = 1;
 
-	Advection = 0.4f;
-	AirDrag = 0.04f * CFDS;
-	AirLoss = 0.94f;
+	Advection = 0.6f;
+	AirDrag = 0.01f * CFDS;
+	AirLoss = 0.98f;
 	Loss = 0.95f;
-	Collision = -0.1f;
-	Gravity = 0.3f;
+	Collision = 0.0f;
+	Gravity = 0.1f;
 	Diffusion = 0.00f;
-	HotAir = 0.000f	* CFDS;
-	Falldown = 1;
+	HotAir = 0.000f * CFDS;
+	Falldown = 2;
 
-	Flammable = 1;
+	Flammable = 0;
 	Explosive = 0;
 	Meltable = 0;
-	Hardness = 1;
+	Hardness = 20;
 
-	Weight = 90;
+	Weight = 30;
 	HeatConduct = 150;
 	Description = "Bacteria. Feed it sugar to grow, can evolve genes";
 
@@ -79,10 +175,10 @@ Element_BCTR::Element_BCTR()
 	HighPressureTransition = NT;
 	LowTemperature = ITL;
 	LowTemperatureTransition = NT;
-	HighTemperature = ITH;
-	HighTemperatureTransition = NT;
+	HighTemperature = 273.15f + 200.0f;
+	HighTemperatureTransition = PT_FIRE;
 
-	DefaultProperties.life = 110;
+	DefaultProperties.life = BCTR::START_LIFE;
 
 	// Element properties here
 	Update = &Element_BCTR::update;
@@ -91,15 +187,183 @@ Element_BCTR::Element_BCTR()
 
 //#TPT-Directive ElementHeader Element_BCTR static int update(UPDATE_FUNC_ARGS)
 int Element_BCTR::update(UPDATE_FUNC_ARGS) {
-	// update code here
-	int r, rx, ry;
-	for (rx = -1; rx < 2; rx++) { // Check area around bacteria for sugar
+	// Dead, dissolvable by SOAP
+	if (parts[i].tmp2) {
+		if (parts[i].temp < 0.0f) {
+			parts[i].ctype = PT_BCTR;
+			sim->part_change_type(i, parts[i].x, parts[i].y, PT_ICEI);
+			return 0;
+		}
+
+		int r, rx, ry;
+		for (rx = -1; rx < 2; rx++)
+		for (ry = -1; ry < 2; ry++)
+			if (BOUNDS_CHECK) {
+				r = pmap[y + ry][x + rx];
+				// Burn
+				if (TYP(r) == PT_FIRE || TYP(r) == PT_PLSM) {
+					parts[i].life = RNG::Ref().between(0, 200);
+					parts[i].temp += 50.0f;
+					sim->part_change_type(i, parts[i].x, parts[i].y, PT_FIRE);
+					return 0;
+				}
+
+				if (TYP(r) == PT_SOAP && RNG::Ref().chance(1, 100) == 1) {
+					sim->kill_part(i);
+					return 0;
+				}
+			}
+		return 0;
+	}
+
+	int restype, resval, foodtype, metabolism, spread, move, sense; bool glow;
+	BCTR::extract_genes(parts[i].ctype, restype, resval, foodtype, metabolism, spread, move, sense, glow);
+
+	// std::cout << restype << " res val" << resval << " food: " << foodtype << " " << metabolism << " spread: " <<
+	//	spread << " move: " << move << " sense:" << sense << " glow:" << glow << "\n";
+
+	// Temp line
+	metabolism = 7;
+
+	int energy_capcity = 2 * BCTR::START_LIFE + (15 - metabolism) * BCTR::ENERGY_MULTI;
+
+	// Inc age, randomize slightly
+	if (RNG::Ref().chance(1, 20) != 1)
+		parts[i].tmp++;
+
+	// Utilize energy
+	if (sim->timer % 50 == 0) {
+		int energy_consumption = metabolism + move + sense + glow + 1; // Can't have 0 energy consumption
+		parts[i].life -= energy_consumption;
+	}
+
+	// Die if no food
+	if (parts[i].life <= 0) {
+		DIE()
+		parts[i].life = 0;
+	}
+	// Too old
+	if (parts[i].tmp >= (15 - metabolism) * BCTR::AGE_MULTI + BCTR::AGE_BASE) {
+		// Replace self with new cell if enough energy
+		if (parts[i].life >= 2 * BCTR::START_LIFE) {
+			parts[i].ctype = BCTR::mutate(parts[i].ctype);
+			parts[i].tmp = 0;
+			parts[i].life -= BCTR::START_LIFE;
+			return 0;
+		} else DIE()
+	}
+
+	// Temperature
+	int max_temp = 273.15f + 70.0f + BCTR::TEMP_RES_MULTI * (restype == 1) * resval;
+	if (parts[i].temp > max_temp)
+		DIE()
+	int min_temp = 273.15f - BCTR::TEMP_RES_MULTI * (restype == 2) * resval;
+	if (parts[i].temp < min_temp) {
+		parts[i].ctype = PT_BCTR;
+		sim->part_change_type(i, parts[i].x, parts[i].y, PT_ICEI);
+		DIE()
+	}
+
+	int r, rx, ry, rt;
+	for (rx = -1; rx < 2; rx++) {
 		for (ry = -1; ry < 2; ry++) {
 			if (BOUNDS_CHECK) {
 				r = pmap[y + ry][x + rx];
-				if (TYP(r) != PT_SUGR) continue; // Sugar isn't here
-				sim->kill_part(ID(r));
-				// allow bacteria to expand here
+				rt = TYP(r);
+
+				// Burn
+				if ((rt == PT_FIRE || rt == PT_PLSM) && RNG::Ref().chance(1, 80) && (restype != 1 || resval < 8)) {
+					parts[i].life = RNG::Ref().between(0, 100);
+					parts[i].temp += 30.0f;
+					sim->part_change_type(i, parts[i].x, parts[i].y, PT_FIRE);
+					return 0;
+				}
+
+				// Eat other bacteria
+				if (foodtype == 5 && TYP(r) == PT_BCTR && RNG::Ref().chance(1, 200) == 1) {
+					int restype2, resval2, foodtype2, metabolism2, spread2, move2, sense2; bool glow2;
+					BCTR::extract_genes(parts[ID(r)].ctype, restype2, resval2, foodtype2, metabolism2, spread2, move2, sense2, glow2);
+					
+					if (restype2 != 6 || (restype2 == 6 && RNG::Ref().between(0, 15) > resval2)) {
+						// Glow gene is always passed
+						if (glow2) parts[ID(r)].ctype |= 1 << 26;
+						EAT(PT_NONE)
+						sim->kill_part(ID(r));
+					}
+				}
+
+				// Movement
+				// 1 = stick to solids and powders
+				if (r && move == 1 && (sim->elements[rt].Properties & TYPE_SOLID || sim->elements[rt].Properties & TYPE_PART)) {
+					parts[i].vx = 0;
+					parts[i].vy = 0;
+				}
+				// 2 = Float through the air
+				else if (!r && move == 2 && RNG::Ref().chance(move, 20)) {
+					parts[i].vx += rx;
+					parts[i].vy += ry;
+				}
+				// 3 = Swap with liquid particles
+				else if (r && move == 3 && sim->elements[rt].Properties & TYPE_LIQUID && RNG::Ref().chance(move, 20)) {	
+					parts[i].x = parts[ID(r)].x;
+					parts[i].y = parts[ID(r)].y;
+					parts[ID(r)].x = x;
+					parts[ID(r)].y = y;
+					pmap[y][x] = r;
+					pmap[y + ry][x + rx] = PMAP(i, parts[i].type);
+					x = x + rx, y = y + ry;
+					return 0;
+				}
+				// 4 = 
+
+				if (!r || TYP(r) == PT_BCTR) {
+					// Reproduce if enough energy stored and spot is empty
+					if (parts[i].life >= 2 * BCTR::START_LIFE) {
+						parts[i].life -= BCTR::START_LIFE;
+						int ni = sim->create_part(-3, x + rx, y + ry, PT_BCTR);
+						parts[ni].dcolour = parts[i].dcolour;
+						parts[ni].ctype = parts[i].ctype;
+
+						// Mutate new bacteria
+						parts[ni].ctype = BCTR::mutate(parts[ni].ctype);
+					}
+					r = sim->photons[y + ry][x + rx];
+				}
+				if (!r) continue;
+				rt = TYP(r);
+
+				// Consume food, boost energy
+				// Metabolism is % chance of eating / 5
+				if (parts[i].life < energy_capcity && RNG::Ref().between(0, 500) < metabolism) {
+					if ((foodtype == 1 && (rt == PT_YEST || rt == PT_DYST)) ||
+						(foodtype == 2 && (rt == PT_WOOD || rt == PT_PLNT || rt == PT_SAWD)) ||
+						(foodtype == 4 && (rt == PT_NEUT || rt == PT_PROT))
+					)
+						EAT(PT_GAS)
+					else if (foodtype == 3 && (rt == PT_PHOT || rt == PT_BRAY)) {
+						EAT(PT_NONE)
+						parts[i].temp += 2.0f;
+					}
+					else if ((foodtype < 1 || foodtype > 5) && TYP(r) == PT_SUGR)
+						EAT(PT_GAS)
+				}
+
+				// Determine resistance against other elements
+				// Active resistances
+				bool should_res = RNG::Ref().between(0, 15) <= resval;
+				if ((rt == PT_VRSS || rt == PT_VRSG || rt == PT_VIRS) && restype == 3 && should_res) // VIRS
+					parts[ID(r)].pavg[0] = 1;
+				else if (rt == PT_ACID && restype == 5 && should_res) // ACID
+					sim->kill_part(ID(r));
+
+				// Passive resistances
+				else if (rt == PT_SOAP && RNG::Ref().chance(1, 10) && (restype != 4 || (restype == 4 && !should_res)))
+					DIE()
+
+				// Radiation causes mutations, resistance decreases change
+				else if ((rt == PT_PROT || rt == PT_NEUT || rt == PT_ELEC) &&
+						RNG::Ref().chance(1, 10) && (restype != 7 || (restype == 7 && !should_res)))
+					parts[i].ctype = BCTR::mutate(parts[i].ctype);
 			}
 		}
 	}
@@ -109,8 +373,21 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 //#TPT-Directive ElementHeader Element_BCTR static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_BCTR::graphics(GRAPHICS_FUNC_ARGS)
 {
-	// graphics code here
-	// return 1 if nothing dymanic happens here
+	*pixel_mode |= PMODE_BLUR;
+
+	// Dead
+	if (cpart->tmp2) {
+		*colr *= 0.8; *colg *= 0.8; *colb *= 0.8;
+		*colr += RNG::Ref().between(-10, 10);
+		*colg += RNG::Ref().between(-10, 10);
+		*colb += RNG::Ref().between(-10, 10);
+		return 0;
+	}
+
+	// Temp code to see different mutations
+	*colr = (cpart->ctype << 4214) % 255;
+	*colg = 255 - *colr;
+	*colb = (cpart->ctype << 12314) % 255;
 	
 	return 0;
 }
