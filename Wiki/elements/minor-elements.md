@@ -15,3 +15,6 @@ Napalm, sticky long burning liquid. Burns slowly, but can quickly create firebal
 ## FREZ
 Cold gas that does not lose heat, but will cool down anything it touches as long as its own temperature is above 20 K. Unlike other coolers,
 this also puts out fires and PLSM. Ignites C5. Undergoes cold-fusion at low temperatures and high pressures.
+
+## SUGR
+Sugar, melts at 186 C, provides food for bacteria.

@@ -2363,6 +2363,12 @@ void GameView::OnDraw()
 					sampleInfo << c->ElementResolve(type, ctype);
 					sampleInfo << " (" << QGATE_NAME::get_name(ctype) << ")";
 				}
+				else if (type == PT_BCTR) {
+					if (sample.particle.tmp2)
+						sampleInfo << "Dead ";
+					sampleInfo << c->ElementResolve(type, ctype);
+					sampleInfo << " (" << ctype << ")";
+				}
 				else
 				{
 					sampleInfo << c->ElementResolve(type, ctype);

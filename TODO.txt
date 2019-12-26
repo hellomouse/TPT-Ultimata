@@ -57,21 +57,9 @@ use RNG::Ref()
 ^ Please use. GCC RNG is slow and has a several kb state. TPT rng takes a few clockcycles and only uses 1 dword of RAM
 --moony
 
-
-
-
-- radiation - heat
-
-infect stkm
-new bacteria: absorbs thermal energy to produce energy
-remove sensing
-if all genes true become SING
-graphics - fuzziness option
-
 regl ignore vehicles
 
 Write guide for FFGN
-Add SUGR to wiki
 
 
 fancy black holes

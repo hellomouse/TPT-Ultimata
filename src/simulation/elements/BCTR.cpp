@@ -10,6 +10,7 @@ namespace BCTR {
 	const int TEMP_RES_MULTI = 5;
 	const int ENERGY_MULTI = 20;
 	const int FOOD_LIFE = 80;
+	const int TEMP_LIFE_GAIN = 5; // Energy gained per 0.5 degrees heat
 	const int START_LIFE = 110;
 	const int AGE_MULTI = 90;
 	const int AGE_BASE = 300;
@@ -44,14 +45,14 @@ namespace BCTR {
 	}
 
 	void extract_genes(int gene, int &restype, int &resval, int &foodtype, int &metabolism, int &spread,
-			int &move, int &sense, bool &glow) {
+			int &move, int &graphics, bool &glow) {
 		restype = extract_bits(gene, 0, 3);
 		resval = extract_bits(gene, 4, 7);
 		foodtype = extract_bits(gene, 8, 11);
 		metabolism = extract_bits(gene, 12, 15);
 		spread = extract_bits(gene, 16, 19);
 		move = extract_bits(gene, 20, 22);
-		sense = extract_bits(gene, 23, 25);
+		graphics = extract_bits(gene, 23, 25);
 		glow = extract_bits(gene, 26, 26);
 	}
 }
@@ -72,10 +73,10 @@ tmp2 is if the bacteria is dead
 Genes are stored in ctype
 Also see GameView.cpp
 4:  0000  - Resistance type (See below)
-			1 = HEAT
+			1 = HEAT (and FIRE)
 			2 = COLD
 			3 = VIRS
-			4 = SOAP
+			4 = SOAP / SALT
 			5 = ACID
 			6 = Being EATEN
 			7 = Radiation
@@ -95,11 +96,16 @@ Also see GameView.cpp
 			1 - Stick to solids and powders
 			2 - Float through the air
 			3 - Randomly swap with liquid particles
-			4 - 
+			4 - Inject self DNA into other BCTR
 23: 000   - Move speed (increased energy cost, 0 - 7)
 26: 000   - Graphics (fuzziness?)
+			(Not listed) - PMODE_BLUR
+			1 - SPARK
+			2 - BLOB
+			3 - FLAT
 27: 0     - Glow in the dark?
 31: 00000 - Unused
+
 
 Will pass on dcolour to children
 
@@ -129,11 +135,6 @@ Genes:
    - Fancy colors ooooh
    - Glow in the dark gene, costs energy but is cool
 
-Bacteria can 'unlock' different sensory 'parts'
-For example, range to sense food can be increased
-Allows for finer control of movement but faster movement
-costs more energy
-
 Multiplier for speed of growth
 Bacteria requires less sugar to grow as time goes on or if it has enough food
  */
@@ -145,7 +146,7 @@ Element_BCTR::Element_BCTR()
 	Name = "BCTR";
 	Colour = PIXPACK(0xDCF781);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_LIQUID;
 	Enabled = 1;
 
 	Advection = 0.6f;
@@ -165,9 +166,9 @@ Element_BCTR::Element_BCTR()
 
 	Weight = 30;
 	HeatConduct = 150;
-	Description = "Bacteria. Feed it sugar to grow, can evolve genes";
+	Description = "Bacteria. Feed it sugar to grow, can evolve genes.";
 
-	Properties = TYPE_LIQUID;
+	Properties = TYPE_LIQUID | PROP_DEADLY | PROP_NEUTPENETRATE;
 
 	LowPressure = IPL;
 	LowPressureTransition = NT;
@@ -208,7 +209,7 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 					return 0;
 				}
 
-				if (TYP(r) == PT_SOAP && RNG::Ref().chance(1, 100) == 1) {
+				if ((TYP(r) == PT_SALT || TYP(r) == PT_SOAP) && RNG::Ref().chance(1, 100) == 1) {
 					sim->kill_part(i);
 					return 0;
 				}
@@ -216,11 +217,17 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 		return 0;
 	}
 
-	int restype, resval, foodtype, metabolism, spread, move, sense; bool glow;
-	BCTR::extract_genes(parts[i].ctype, restype, resval, foodtype, metabolism, spread, move, sense, glow);
+	// If all genes somehow become 1 become sing :D
+	if (parts[i].ctype == ~0) {
+		sim->part_change_type(i, parts[i].x, parts[i].y, PT_SING);
+		return 0;
+	}
+
+	int restype, resval, foodtype, metabolism, spread, move, graphics; bool glow;
+	BCTR::extract_genes(parts[i].ctype, restype, resval, foodtype, metabolism, spread, move, graphics, glow);
 
 	// std::cout << restype << " res val" << resval << " food: " << foodtype << " " << metabolism << " spread: " <<
-	//	spread << " move: " << move << " sense:" << sense << " glow:" << glow << "\n";
+	//	spread << " move: " << move << " graphics:" << graphics << " glow:" << glow << "\n";
 
 	// Temp line
 	metabolism = 7;
@@ -233,7 +240,7 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 
 	// Utilize energy
 	if (sim->timer % 50 == 0) {
-		int energy_consumption = metabolism + move + sense + glow + 1; // Can't have 0 energy consumption
+		int energy_consumption = metabolism + move + glow + 1; // Can't have 0 energy consumption
 		parts[i].life -= energy_consumption;
 	}
 
@@ -281,8 +288,8 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 
 				// Eat other bacteria
 				if (foodtype == 5 && TYP(r) == PT_BCTR && RNG::Ref().chance(1, 200) == 1) {
-					int restype2, resval2, foodtype2, metabolism2, spread2, move2, sense2; bool glow2;
-					BCTR::extract_genes(parts[ID(r)].ctype, restype2, resval2, foodtype2, metabolism2, spread2, move2, sense2, glow2);
+					int restype2, resval2, foodtype2, metabolism2, spread2, move2, graphics2; bool glow2;
+					BCTR::extract_genes(parts[ID(r)].ctype, restype2, resval2, foodtype2, metabolism2, spread2, move2, graphics2, glow2);
 					
 					if (restype2 != 6 || (restype2 == 6 && RNG::Ref().between(0, 15) > resval2)) {
 						// Glow gene is always passed
@@ -314,9 +321,15 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 					x = x + rx, y = y + ry;
 					return 0;
 				}
-				// 4 = 
+				// 4 = Reproduce by injecting DNA into other BCTR
+				else if (r && move == 4 && TYP(r) == PT_BCTR && parts[i].life > BCTR::START_LIFE && RNG::Ref().chance(1, 100)) {
+					parts[i].ctype = BCTR::mutate(parts[i].ctype);
+					parts[ID(r)].ctype = parts[i].ctype;
+					parts[i].life -= BCTR::START_LIFE;
+					return 0;
+				}
 
-				if (!r || TYP(r) == PT_BCTR) {
+				if ((!r || TYP(r) == PT_BCTR) && move != 4) {
 					// Reproduce if enough energy stored and spot is empty
 					if (parts[i].life >= 2 * BCTR::START_LIFE) {
 						parts[i].life -= BCTR::START_LIFE;
@@ -344,7 +357,12 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 						EAT(PT_NONE)
 						parts[i].temp += 2.0f;
 					}
-					else if ((foodtype < 1 || foodtype > 5) && TYP(r) == PT_SUGR)
+					else if (foodtype == 6 && r && parts[i].temp < parts[ID(r)].temp) { // Absorb thermal energy
+						parts[i].temp += 0.5f;
+						parts[ID(r)].temp -= 0.5f;
+						parts[i].life += BCTR::TEMP_LIFE_GAIN;
+					}
+					else if ((foodtype < 1 || foodtype > 6) && TYP(r) == PT_SUGR)
 						EAT(PT_GAS)
 				}
 
@@ -357,7 +375,7 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 					sim->kill_part(ID(r));
 
 				// Passive resistances
-				else if (rt == PT_SOAP && RNG::Ref().chance(1, 10) && (restype != 4 || (restype == 4 && !should_res)))
+				else if ((rt == PT_SALT || rt == PT_SOAP) && RNG::Ref().chance(1, 10) && (restype != 4 || (restype == 4 && !should_res)))
 					DIE()
 
 				// Radiation causes mutations, resistance decreases change
@@ -384,11 +402,27 @@ int Element_BCTR::graphics(GRAPHICS_FUNC_ARGS)
 		return 0;
 	}
 
-	// Temp code to see different mutations
-	*colr = (cpart->ctype << 4214) % 255;
-	*colg = 255 - *colr;
-	*colb = (cpart->ctype << 12314) % 255;
-	
+	// Color vary a bit depending on mutation
+	*colr = (*colr + (cpart->ctype << 4214) % 255) / 2;
+	*colg = (*colg + 255 - *colr) / 2;
+	*colb = (*colb + (cpart->ctype << 12314) % 255) / 2;
+
+	// Graphical effectss
+	int graphics = BCTR::extract_bits(cpart->ctype, 23, 25);
+	if (graphics == 1) *pixel_mode = PMODE_SPARK;
+	else if (graphics == 2) *pixel_mode = PMODE_BLOB;
+	else if (graphics == 3) *pixel_mode = PMODE_FLAT;
+
+	// Glow in the dark
+	int glow = BCTR::extract_bits(cpart->ctype, 26, 26);
+	if (glow) {
+		*firer = *colr;
+		*fireg = *colg;
+		*fireb = *colb;
+		*firea = 240;
+		*pixel_mode |= PMODE_GLOW;
+	}
+
 	return 0;
 }
 
