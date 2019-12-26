@@ -65,6 +65,10 @@ int Element_NPLM::update(UPDATE_FUNC_ARGS)
 		// sim->create_part(-1, parts[i].x - 1, parts[i].y + 1, PT_NITR);
 	}
 
+	// Fix burning forever
+	if (RNG::Ref().chance(1, 100))
+		parts[i].life--;
+
 	int r, rx, ry;
 	for (rx = -1; rx < 2; rx++){
 		for (ry = -1; ry < 2; ry++){
@@ -86,7 +90,7 @@ int Element_NPLM::update(UPDATE_FUNC_ARGS)
 					parts[ID(r)].vy = parts[ID(r)].vy * 2;
 					parts[ID(r)].life++;
 					parts[i].temp += 50.0f;
-					parts[i].life -= 1;
+					parts[i].life--;
 				}
 			}
 		}

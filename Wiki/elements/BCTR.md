@@ -1,7 +1,7 @@
 # BCTR
 ### Bacteria
 
-![Element](https://i.imgur.com/VEKNuCV.gif)
+[Image here (warning, large!)](https://i.imgur.com/VEKNuCV.gif)
 
 **Description:**  *Bacteria. Feed it sugar to grow, can evolve genes.*
 

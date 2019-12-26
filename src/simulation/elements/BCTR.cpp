@@ -403,9 +403,9 @@ int Element_BCTR::graphics(GRAPHICS_FUNC_ARGS)
 	}
 
 	// Color vary a bit depending on mutation
-	*colr = (*colr + (cpart->ctype << 4214) % 255) / 2;
+	*colr = (*colr + (cpart->ctype ^ 9999) % 255) / 2;
 	*colg = (*colg + 255 - *colr) / 2;
-	*colb = (*colb + (cpart->ctype << 12314) % 255) / 2;
+	*colb = (*colb + 255 - (cpart->ctype ^ 999999) % 255) / 2;
 
 	// Graphical effectss
 	int graphics = BCTR::extract_bits(cpart->ctype, 23, 25);

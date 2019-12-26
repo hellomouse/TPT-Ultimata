@@ -20,8 +20,8 @@ Element_SUGR::Element_SUGR()
 	HotAir = 0.000f * CFDS;
 	Falldown = 1;
 
-	Flammable = 0;
-	Explosive = 0;
+	Flammable = 20;
+	Explosive = 1;
 	Meltable = 2;
 	Hardness = 2;
 	Description = "Sugar. Great food for bacteria.";

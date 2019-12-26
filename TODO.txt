@@ -57,9 +57,16 @@ use RNG::Ref()
 ^ Please use. GCC RNG is slow and has a several kb state. TPT rng takes a few clockcycles and only uses 1 dword of RAM
 --moony
 
-regl ignore vehicles
+SUGR - dissolve in water
+ANTS that eat SUGR and make colonies
+
+
+
+a realistic plant that makes SUGR from light
 
 Write guide for FFGN
+
+
 
 
 fancy black holes
