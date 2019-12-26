@@ -27,20 +27,12 @@ u can add HYGN or NBLE to make it grow!
 star grows larger and becomes blue
 once fusion cycle eats up it becomes either red giant or redsupergiant
 
-planets engage in n body motaton around stars, stars n body motion other stars
-
-entire blackhole should glow when struck by a particle
-- if energy glow white
-also release hwaking radiation?
-
 red giant becomes white dwarf or maybe supernova
 supergiant goes supernova and collapses either into black hole or neutron star
 
-if blackholes collide glow
-
 mass can be sucked away by gravity
 
-data/intro text fori ntro blurb
+
 
 
 MOVING SOLIDS 
@@ -59,22 +51,8 @@ use RNG::Ref()
 
 
 
-
-- radiation - heat
-
-infect stkm
-new bacteria: absorbs thermal energy to produce energy
-remove sensing
-if all genes true become SING
-graphics - fuzziness option
-
-regl ignore vehicles
-
 Write guide for FFGN
 Add SUGR to wiki
-
-
-fancy black holes
 
 
 
@@ -110,6 +88,7 @@ add bio stuff so we can make a realistic human
 food
 
 
+fancy black holes
 
 2 row elements?
 
