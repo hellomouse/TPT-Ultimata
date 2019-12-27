@@ -17,4 +17,8 @@ Cold gas that does not lose heat, but will cool down anything it touches as long
 this also puts out fires and PLSM. Ignites C5. Undergoes cold-fusion at low temperatures and high pressures.
 
 ## SUGR
-Sugar, melts at 186 C, provides food for bacteria. Flammable.
+Sugar, melts at 186 C, provides food for bacteria. Flammable. Reacts with ACID and CAUS to form CRBN, dissolves in water to form SWTR. YEST 
+grows in SUGR. Grows slowly in sugar water.
+
+## SWTR (Sugar water)
+Water that has sugar dissolved in it. Grows YEST, basically SLTW but with SUGR instead of SALT. Grows PLNT slowly.

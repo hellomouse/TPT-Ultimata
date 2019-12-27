@@ -44,7 +44,7 @@ Element_NPLM::Element_NPLM()
 	HighTemperature = 4000.0f;
 	HighTemperatureTransition = PT_H2;
 	
-	Update = Update = &Element_NPLM::update;
+	Update = &Element_NPLM::update;
 	
 }
 

@@ -6,7 +6,7 @@ Element_WAX::Element_WAX()
 	Name = "WAX";
 	Colour = PIXPACK(0xF0F0BB);
 	MenuVisible = 1;
-	MenuSection = SC_SOLIDS;
+	MenuSection = SC_ORGANIC;
 	Enabled = 1;
 
 	Advection = 0.0f;

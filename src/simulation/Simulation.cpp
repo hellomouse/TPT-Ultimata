@@ -2397,7 +2397,7 @@ void Simulation::init_can_move()
 
 		//SAWD cannot be displaced by other powders
 		if (elements[movingType].Properties & TYPE_PART)
-			can_move[movingType][PT_SAWD] = 0;
+			can_move[movingType][PT_SAWD] = 1;
 	}
 	//a list of lots of things PHOT can move through
 	// TODO: replace with property
@@ -2408,10 +2408,11 @@ void Simulation::init_can_move()
 		 || destinationType == PT_WATR || destinationType == PT_DSTW || destinationType == PT_SLTW || destinationType == PT_GLOW
 		 || destinationType == PT_ISOZ || destinationType == PT_ISZS || destinationType == PT_QRTZ || destinationType == PT_PQRT
 		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5
-		 || destinationType == PT_RDND)
+		 || destinationType == PT_RDND || destinationType == PT_SWTR)
 			can_move[PT_PHOT][destinationType] = 2;
 		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_VIBR && destinationType != PT_BVBR && destinationType != PT_PRTI && destinationType != PT_PRTO)
 		{
+			can_move[PT_ANT][destinationType] = 2;
 			can_move[PT_PROT][destinationType] = 2;
 			can_move[PT_GRVT][destinationType] = 2;
 			can_move[PT_BALI][destinationType] = 2;
@@ -3740,7 +3741,7 @@ void Simulation::UpdateParticles(int start, int end)
 					ctemph = ctempl = pt;
 					// change boiling point with pressure
 					if (((elements[t].Properties&TYPE_LIQUID) && IsValidElement(elements[t].HighTemperatureTransition) && (elements[elements[t].HighTemperatureTransition].Properties&TYPE_GAS))
-					        || t==PT_LNTG || t==PT_SLTW)
+					        || t==PT_LNTG || t==PT_SLTW || t==PT_SWTR)
 						ctemph -= 2.0f*pv[y/CELL][x/CELL];
 					else if (((elements[t].Properties&TYPE_GAS) && IsValidElement(elements[t].LowTemperatureTransition) && (elements[elements[t].LowTemperatureTransition].Properties&TYPE_LIQUID))
 					         || t==PT_WTRV)
@@ -3810,6 +3811,9 @@ void Simulation::UpdateParticles(int start, int end)
 							}
 							else
 								s = 0;
+						}
+						else if (t == PT_SWTR) {
+							t = RNG::Ref().chance(1, 4) ? PT_SUGR : PT_WTRV;
 						}
 						else if (t == PT_SLTW)
 						{
@@ -4140,7 +4144,7 @@ void Simulation::UpdateParticles(int start, int end)
 			{
 				if ((*(elements[t].Update))(this, i, x, y, surround_space, nt, parts, pmap))
 					continue;
-				else if (t==PT_WARP || t==PT_BCTR)
+				else if (t==PT_WARP || t==PT_BCTR || t==PT_FISH)
 				{
 					// Warp does some movement in its update func, update variables to avoid incorrect data in pmap
 					x = (int)(parts[i].x+0.5f);
