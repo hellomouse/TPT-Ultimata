@@ -81,6 +81,12 @@ int Element_CRBN::update(UPDATE_FUNC_ARGS)
 				else if (rt == PT_CRBN)
 					++crbn_count;
 
+				// Solidify
+				else if (rt == PT_PSTE) {
+					parts[i].tmp2 = 1;
+					sim->kill_part(ID(r));
+				}
+
 				// Purify water
 				else if (rt == PT_WATR)
 					sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, PT_DSTW);

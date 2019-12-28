@@ -17,6 +17,7 @@ Reactions:
 - Purifies WATR into DSTW and salt water into either DSTW or SALT.
 - When burnt with H2 turns into GAS (Kind of useless since the GAS instantly ignites)
 - When burnt produces CO2
+- When touches PSTE absorbs the PSTE and turns solid
 
 ## Technical
 #### Properties
