@@ -181,7 +181,7 @@ int Element_BIRD::update(UPDATE_FUNC_ARGS) {
 						scatter = true;
 
 					// If want to perch attract instead to solids
-					if (want_to_perch && sim->elements[rt].Properties & TYPE_SOLID) {
+					if (want_to_perch && sim->elements[rt].Properties & TYPE_SOLID && rt != PT_GLAS) {
 						repulse_object_x += 2 * rx;
 						repulse_object_y += 2 * ry;
 					}

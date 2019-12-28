@@ -22,3 +22,6 @@ grows in SUGR. Grows slowly in sugar water.
 
 ## SWTR (Sugar water)
 Water that has sugar dissolved in it. Grows YEST, basically SLTW but with SUGR instead of SALT. Grows PLNT slowly.
+
+## BGEL (Ballistic Jelly)
+Brightens depending on the highest magnitude of the pressure it experienced, useful for bomb testing. Stores the magnitude in pavg[0].

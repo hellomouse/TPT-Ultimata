@@ -90,7 +90,6 @@ int Element_BLOD::update(UPDATE_FUNC_ARGS) {
 		if (parts[i].life < 30)
 			parts[i].life = 30;
 		parts[i].vx = parts[i].vy = 0;
-		return 0;
 	}
 
 	int rx, ry, r, rt;
@@ -99,6 +98,16 @@ int Element_BLOD::update(UPDATE_FUNC_ARGS) {
 		for (ry = -1; ry <= 1; ++ry)
 			if (BOUNDS_CHECK && (rx || ry)) {
 				r = pmap[y + ry][x + rx];
+
+				if (TYP(r) == PT_SOAP && RNG::Ref().chance(1, 100)) {
+					sim->kill_part(i);
+					continue;
+				}
+
+				// Clotted blood has none of these updates
+				if (parts[i].tmp2 >= CLOT)
+					continue;
+
 				if (!r) {
 					// Random visocity increase if not moving fast and minimal pressure
 					if (fabs(parts[i].vx) < 0.1f && fabs(parts[i].vy) < 0.1f &&
@@ -119,7 +128,7 @@ int Element_BLOD::update(UPDATE_FUNC_ARGS) {
 					parts[ID(r)].life = parts[i].life;
 				}
 				// Stain powders and solids
-				else if (rt != PT_ICEI && rt != PT_SNOW &&
+				else if (rt != PT_ICEI && rt != PT_SNOW && rt != PT_BIZRS &&
 						(sim->elements[rt].Properties & TYPE_PART || sim->elements[rt].Properties & TYPE_SOLID)) {
 					newcolor = 0xFF000000 + sim->elements[PT_BLOD].Colour;
 					if (parts[ID(r)].dcolour != newcolor && parts[i].tmp > 0) {
@@ -129,7 +138,7 @@ int Element_BLOD::update(UPDATE_FUNC_ARGS) {
 				}
 				// Stain liquids
 				// Liquids get stained more, but in a diluted color
-				else if (rt != PT_BLOD && sim->elements[rt].Properties & TYPE_LIQUID) {
+				else if (rt != PT_BLOD && rt != PT_SOAP && rt != PT_BIZR && sim->elements[rt].Properties & TYPE_LIQUID) {
 					if (parts[i].tmp > 0) {
 						newcolor = 0xAA000000 + sim->elements[PT_BLOD].Colour;
 						if (parts[ID(r)].dcolour != newcolor && RNG::Ref().chance(1, 2)) {

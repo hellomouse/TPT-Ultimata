@@ -55,8 +55,6 @@ use RNG::Ref()
 
 experiemntal: dynamic light field
 
-ballistic jelly, changes color under pressure
-
 
 a realistic plant that makes SUGR from light
 - organ differentation from SEED
