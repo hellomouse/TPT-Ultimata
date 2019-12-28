@@ -25,3 +25,6 @@ Water that has sugar dissolved in it. Grows YEST, basically SLTW but with SUGR i
 
 ## BGEL (Ballistic Jelly)
 Brightens depending on the highest magnitude of the pressure it experienced, useful for bomb testing. Stores the magnitude in pavg[0].
+
+## HONY (Honey)
+Sticky liquid. Other life forms (except ANT) will not EAT HONY. HONY slowly kills BCTR. Turns solid near WAX or when cold (< 20 C). Heals STKM 5 HP.

@@ -362,7 +362,7 @@ int Element_BCTR::update(UPDATE_FUNC_ARGS) {
 						parts[ID(r)].temp -= 0.5f;
 						parts[i].life += BCTR::TEMP_LIFE_GAIN;
 					}
-					else if ((foodtype < 1 || foodtype > 6) && TYP(r) == PT_SUGR)
+					else if ((foodtype < 1 || foodtype > 6) && (TYP(r) == PT_SWTR || TYP(r) == PT_SUGR))
 						EAT(PT_GAS)
 				}
 

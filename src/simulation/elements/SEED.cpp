@@ -47,16 +47,14 @@ Element_SEED::Element_SEED()
 }
 
 //#TPT-Directive ElementHeader Element_SEED static int update(UPDATE_FUNC_ARGS)
-int Element_SEED::update(UPDATE_FUNC_ARGS)
-{
+int Element_SEED::update(UPDATE_FUNC_ARGS) {
 	// update code here
 
 	return 0;
 }
 
 //#TPT-Directive ElementHeader Element_SEED static int graphics(GRAPHICS_FUNC_ARGS)
-int Element_SEED::graphics(GRAPHICS_FUNC_ARGS)
-{
+int Element_SEED::graphics(GRAPHICS_FUNC_ARGS) {
 	// graphics code here
 	// return 1 if nothing dymanic happens here
 

@@ -55,29 +55,38 @@ use RNG::Ref()
 
 experiemntal: dynamic light field
 
+config tool 
+     https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
+
+
+TIME element that creates time dilation
+     https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=15377
+
+
+text plotting tool
+
+sound waves
+- sonic weapons finally :D
+
+slow burning explosive that slowly expands and burns everything
+
 
 a realistic plant that makes SUGR from light
 - organ differentation from SEED
-- bees, make hexagonal hives
-     - pollinates plnt and makes it blossom into flowers :D
-     - attack STKM and die
 
-Bees: (BEE)Should be programed to be attracted to one another. 
-The should fly around in a certain radius and seek out one another to form swarms. 
-If a bee dectects GEL (honney) in it's radius, it will land on the GEL. 
-The GEL MUST be more than 3-5 pixels in order for the be to land on it. 
-Once one bee lands, all will try and land on the GEL to. 
-When a player (STKM STK2) is near a 15-30 pixels of the bee, 
-they will swarm on the player. Water, acid and anything above a
- heat of 50 deggres celcius will kill the bees and they will drop to the ground as DUST.
+ANT eat HONY
+
+superfluids, NEON cools into this
+- "flow" velocity, mimic fluid dynamics 
+- flow up surfaces
+- change color not same as LO2
 
 
 - spiders, spin web
 
 
 TODO 
-SOIL, MUD, BEE, SPDR, HONY
-
+SOIL, MUD, SPDR, SFLD
 
 ANTS that eat SUGR and make colonies
 - pherome trails
@@ -94,7 +103,6 @@ aliens - evil AI that need to be killed
 sophon
 
 
-superfluids, NEON cools into this
 NEON fusion
      NEON -> NBLE + O2
 

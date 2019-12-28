@@ -28,7 +28,7 @@ Element_FISH::Element_FISH()
 	Weight = 30;
 
 	HeatConduct = 150;
-	Description = "Fish, swims in water and eats ANT and SEED.";
+	Description = "Freshwater fish, swims in water and eats ANT and SEED.";
 
 	Properties = TYPE_PART;
 

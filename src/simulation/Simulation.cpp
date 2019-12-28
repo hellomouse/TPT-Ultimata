@@ -2448,6 +2448,9 @@ void Simulation::init_can_move()
 	can_move[PT_THDR][PT_THDR] = 2;
 	can_move[PT_EMBR][PT_EMBR] = 2;
 	can_move[PT_TRON][PT_SWCH] = 3;
+
+	can_move[PT_BEE][PT_WAX] = 2; // BEEs go through wax and honey
+	can_move[PT_BEE][PT_HONY] = 2;
 }
 
 /*
