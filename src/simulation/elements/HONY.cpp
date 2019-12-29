@@ -1,6 +1,6 @@
 #include "simulation/ElementCommon.h"
 
-//#TPT-Directive ElementClass Element_HONY PT_HONY 228
+//#TPT-Directive ElementClass Element_HONY PT_HONY 227
 Element_HONY::Element_HONY()
 {
 	Identifier = "DEFAULT_PT_HONY";

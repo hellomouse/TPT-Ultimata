@@ -167,7 +167,7 @@ int Element_BIRD::update(UPDATE_FUNC_ARGS) {
 				// Tend away from obstacles detected
 				// Anything that's not a gas or too hot is an obstacle. Birds can't
 				// see glass though
-				else if (rt != PT_GLAS && (parts[i].temp > AVOID_TEMP ||
+				else if (rt != PT_WEB && rt != PT_GLAS && (parts[i].temp > AVOID_TEMP ||
 						!(sim->elements[rt].Properties & TYPE_GAS) ||
 						sim->IsWallBlocking(x + rx, y + ry, PT_BIRD))) {
 					repulse_object_x -= rx;
@@ -181,7 +181,7 @@ int Element_BIRD::update(UPDATE_FUNC_ARGS) {
 						scatter = true;
 
 					// If want to perch attract instead to solids
-					if (want_to_perch && sim->elements[rt].Properties & TYPE_SOLID && rt != PT_GLAS) {
+					if (want_to_perch && sim->elements[rt].Properties & TYPE_SOLID && rt != PT_GLAS && rt != PT_WEB) {
 						repulse_object_x += 2 * rx;
 						repulse_object_y += 2 * ry;
 					}

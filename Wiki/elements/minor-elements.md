@@ -28,3 +28,8 @@ Brightens depending on the highest magnitude of the pressure it experienced, use
 
 ## HONY (Honey)
 Sticky liquid. Other life forms (except ANT) will not EAT HONY. HONY slowly kills BCTR. Turns solid near WAX or when cold (< 20 C). Heals STKM 5 HP.
+
+## DFLM (Dark Flame)
+Like a combination of CAUS and VIRS. Burns slowly through almost anything. Will decay slowly if it hasn't burnt anything in a long time. 
+Turns into FIRE if cooled below 10 K. Undergoes "renewals" where its temperature increases 
+400 degrees and life gets renewed.

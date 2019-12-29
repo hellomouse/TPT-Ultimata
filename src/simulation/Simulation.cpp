@@ -2256,6 +2256,7 @@ void Simulation::clear_sim(void)
 	memset(portalp, 0, sizeof(portalp));
 	memset(fighters, 0, sizeof(fighters));
 	std::fill(elementCount, elementCount+PT_NUM, 0);
+	std::fill(&time_dilation[0][0], &time_dilation[0][0] + ((XRES / CELL) * (YRES / CELL)), 0);
 	elementRecount = true;
 	fighcount = 0;
 	player.spwn = 0;
@@ -2403,6 +2404,9 @@ void Simulation::init_can_move()
 	// TODO: replace with property
 	for (destinationType = 0; destinationType < PT_NUM; destinationType++)
 	{
+		// Everything can "go through" WEB
+		can_move[destinationType][PT_WEB] = 2; // Everything can go through web
+
 		if (destinationType == PT_GLAS || destinationType == PT_PHOT || destinationType == PT_FILT || destinationType == PT_INVIS
 		 || destinationType == PT_CLNE || destinationType == PT_PCLN || destinationType == PT_BCLN || destinationType == PT_PBCN
 		 || destinationType == PT_WATR || destinationType == PT_DSTW || destinationType == PT_SLTW || destinationType == PT_GLOW
@@ -3504,6 +3508,12 @@ void Simulation::UpdateParticles(int start, int end)
 		
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
+
+			// Time dilation: skip update
+			if (!(elements[t].Properties & PROP_NO_TIME) &&
+					!(t == PT_GBMB && parts[i].life > 0) &&  // GBMB needs to update to make gravity
+					time_dilation[y / CELL][x / CELL] < 0 && timer % abs(time_dilation[y / CELL][x / CELL]) != 0)
+				continue;
 
 			//this kills any particle out of the screen, or in a wall where it isn't supposed to go
 			if (x<CELL || y<CELL || x>=XRES-CELL || y>=YRES-CELL ||
@@ -4739,6 +4749,10 @@ killed:
 				// Some elements update n times per frame (vehicles update twice)
 				if (elements[t].Properties & PROP_VEHICLE && update_count < 2)
 					goto update_loop_begin;
+
+				// Time dilation: speed up
+				if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0 && update_count <= time_dilation[y / CELL][x / CELL])
+					goto update_loop_begin;
 			}
 movedone:
 			continue;
@@ -4902,6 +4916,7 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
 			bool inBounds = false;
+
 			if (x>=0 && y>=0 && x<XRES && y<YRES)
 			{
 				if (elements[t].Properties & TYPE_ENERGY)
@@ -4921,6 +4936,10 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 			lastPartUsed = i;
 			NUM_PARTS ++;
 
+			// Time dilation: slow down
+			if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] < 0 && timer % abs(time_dilation[y / CELL][x / CELL]) != 0)
+				continue;
+
 			//decrease particle life
 			if (do_life_dec && (!sys_pause || framerender))
 			{
@@ -4937,6 +4956,12 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 				if (parts[i].life>0 && (elem_properties&PROP_LIFE_DEC) && !(inBounds && bmap[y/CELL][x/CELL] == WL_STASIS && emap[y/CELL][x/CELL]<8))
 				{
 					// automatically decrease life
+					// Time dilation: speed up
+					if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0) {
+						parts[i].life -= time_dilation[y / CELL][x / CELL];
+						if (parts[i].life < 1)
+							parts[i].life = 1;
+					}
 					parts[i].life--;
 					if (parts[i].life<=0 && (elem_properties&(PROP_LIFE_KILL_DEC|PROP_LIFE_KILL)))
 					{
@@ -5046,6 +5071,23 @@ void Simulation::BeforeSim()
 	// Clear stasis field every couple of frames
 	if (timer % 4 == 0)
 		stasis->Clear();
+
+	// Tick time dilation down to 0
+	if (timer % 4 == 0) {
+		for (unsigned int y = 0; y < YRES / CELL; ++y)
+			for (unsigned int x = 0; x < XRES / CELL; ++x) {
+				if (time_dilation[y][x] < 0)
+					++time_dilation[y][x];
+				else if (time_dilation[y][x] > 0)
+					--time_dilation[y][x];
+
+				// Constrain
+				if (time_dilation[y][x] < MIN_TIME_DILATION)
+					time_dilation[y][x] = MIN_TIME_DILATION;
+				else if (time_dilation[y][x] > MAX_TIME_DILATION)
+					time_dilation[y][x] = MAX_TIME_DILATION;
+			}
+	}
 
 	if (!sys_pause||framerender)
 	{

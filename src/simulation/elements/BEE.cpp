@@ -126,7 +126,6 @@ int Element_BEE::update(UPDATE_FUNC_ARGS) {
 
 	// Follow dance if contained
 	if (parts[i].tmp > 0 && parts[i].tmp % 2 == 1 && parts[i].tmp2 == 1 && parts[i].life == 0) {
-		int dis = parts[i].tmp / 1000;
 		float angle = (parts[i].tmp % 1000) / 180 * 3.1415f;
 		tendx -= 2.0f * cos(angle);
 		tendy -= 2.0f * sin(angle);
@@ -253,7 +252,7 @@ int Element_BEE::update(UPDATE_FUNC_ARGS) {
 						}
 					}
 					// Avoid non-gases or hot objects
-					else if (!(sim->elements[rt].Properties & TYPE_GAS) || parts[ID(r)].temp > 273.15f + 50.0f) {
+					else if (rt != PT_WEB && (!(sim->elements[rt].Properties & TYPE_GAS) || parts[ID(r)].temp > 273.15f + 50.0f)) {
 						tendx -= rx;
 						tendy -= ry;
 						++object_count;

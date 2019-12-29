@@ -59,21 +59,25 @@ config tool
      https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
 
 
-TIME element that creates time dilation
-     https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=15377
+TIME element
+     set time_dilation field, negative = slow 
+     TODO TIME ELEMENT (PORTAL GRAPHICS)
+     slow = in, fast = out
 
+cloud
 
 text plotting tool
 
 sound waves
 - sonic weapons finally :D
 
-slow burning explosive that slowly expands and burns everything
-
 
 a realistic plant that makes SUGR from light
 - organ differentation from SEED
 
+
+ANTS that eat SUGR and make colonies
+- pherome trails
 ANT eat HONY
 
 superfluids, NEON cools into this
@@ -82,15 +86,21 @@ superfluids, NEON cools into this
 - change color not same as LO2
 
 
+- signals to spider where prey landed and what type somehow?
 - spiders, spin web
+- randomize left / right
 
+algoritihm:
+0. if can climb up go up, if on flat ground move left or right
+1. try to aim at different angles downwards
+3. shoot a web and move to midpoint
+4. shoot 2nd web and move to mid point
+5. shoot web at different radii to the web
+6. create spiral
+7. set timer to re-create the web if needed?
 
 TODO 
-SOIL, MUD, SPDR, SFLD
-
-ANTS that eat SUGR and make colonies
-- pherome trails
-
+SOIL, MUD, SPDR, SFLD, SEED, TIME
 
 gunship
  - laser weapon
@@ -151,6 +161,7 @@ INFO element who made the mod
 
 write guide about quantum 
 have lua mod to place down quantum gates?
+- or website?
 
 
 Two more particlemaps
