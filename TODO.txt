@@ -59,10 +59,6 @@ config tool
      https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
 
 
-TIME element
-     set time_dilation field, negative = slow 
-     TODO TIME ELEMENT (PORTAL GRAPHICS)
-     slow = in, fast = out
 
 cloud
 

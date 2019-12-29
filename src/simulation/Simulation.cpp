@@ -4749,12 +4749,11 @@ killed:
 				// Some elements update n times per frame (vehicles update twice)
 				if (elements[t].Properties & PROP_VEHICLE && update_count < 2)
 					goto update_loop_begin;
-
-				// Time dilation: speed up
-				if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0 && update_count <= time_dilation[y / CELL][x / CELL])
-					goto update_loop_begin;
 			}
 movedone:
+			// Time dilation: speed up
+			if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0 && update_count <= time_dilation[y / CELL][x / CELL])
+				goto update_loop_begin;
 			continue;
 		}
 	}

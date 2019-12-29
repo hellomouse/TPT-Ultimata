@@ -54,7 +54,7 @@ void Element_CBMB::time_dilation(Simulation *sim, int i, int x, int y, int radiu
 
 	for (int dx = -radius; dx <= radius; ++dx) 
 		for (int dy = -radius; dy <= radius; ++dy) 
-			if (x + dx >= 0 && x + dx < XRES / CELL && y + dy >= 0 && y + dy < XRES / CELL) {
+			if (x + dx >= 0 && x + dx < XRES / CELL && y + dy >= 0 && y + dy < YRES / CELL) {
 				sim->time_dilation[y + dy][x + dx] = val * (1 - (abs(dx) + abs(dy)) / (radius + radius));
 			}
 }
@@ -92,11 +92,11 @@ int Element_CBMB::update(UPDATE_FUNC_ARGS) {
 
 	// Detonation
 	if (parts[i].tmp2 > 50) {
-		time_dilation(sim, i, x, y, 5, -8);
+		time_dilation(sim, i, x, y, 10, -8);
 		parts[i].vx = parts[i].vy = 0;
 	} 
 	else if (parts[i].tmp2 >= 1) {
-		time_dilation(sim, i, x, y, 5, 4);
+		time_dilation(sim, i, x, y, 10, 4);
 		parts[i].vx = parts[i].vy = 0;
 	}
 
