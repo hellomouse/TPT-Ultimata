@@ -48,7 +48,37 @@ Element_SOIL::Element_SOIL()
 
 //#TPT-Directive ElementHeader Element_SOIL static int update(UPDATE_FUNC_ARGS)
 int Element_SOIL::update(UPDATE_FUNC_ARGS) {
-	// update code here
+	if (parts[i].temp < 273.15f) { // Permafrost, dont move
+		parts[i].vx = parts[i].vy = 0;
+	}
+
+	int rx, ry, r, rt;
+	for (int rx = -1; rx <= 2; ++rx)
+		for (int ry = -1; ry <= 2; ++ry)
+			if (BOUNDS_CHECK && (rx || ry)) {
+				r = pmap[y + ry][x + rx];
+				if (!r) continue;
+				rt = TYP(r);
+
+				// Absorb water
+				if (RNG::Ref().chance(1, 3)) {
+					if (rt == PT_SLTW && RNG::Ref().chance(1, 5)) {
+						sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, PT_SALT);
+						sim->part_change_type(i, parts[i].x, parts[i].y, PT_MUD);
+						return 0;
+					} 
+					else if (rt == PT_SWTR && RNG::Ref().chance(1, 5)) {
+						sim->part_change_type(ID(r), parts[ID(r)].x, parts[ID(r)].y, PT_SUGR);
+						sim->part_change_type(i, parts[i].x, parts[i].y, PT_MUD);
+						return 0;
+					}
+					else if (rt == PT_SLTW || rt == PT_SWTR || rt == PT_WATR || rt == PT_DSTW) {
+						sim->kill_part(ID(r));
+						sim->part_change_type(i, parts[i].x, parts[i].y, PT_MUD);
+						return 0;
+					}
+				}
+			}
 
 	return 0;
 }
@@ -59,6 +89,12 @@ int Element_SOIL::graphics(GRAPHICS_FUNC_ARGS) {
 	*colr += z;
 	*colg += z;
 	*colb += z;
+
+	// Turn blueish if cold
+	if (cpart->temp < 273.15f) {
+		*colg += (273.15f - cpart->temp) / 8;
+		*colb += (273.15f - cpart->temp) / 3;
+	}
 	return 0;
 }
 

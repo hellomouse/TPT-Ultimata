@@ -33,3 +33,10 @@ Sticky liquid. Other life forms (except ANT) will not EAT HONY. HONY slowly kill
 Like a combination of CAUS and VIRS. Burns slowly through almost anything. Will decay slowly if it hasn't burnt anything in a long time. 
 Turns into FIRE if cooled below 10 K. Undergoes "renewals" where its temperature increases 
 400 degrees and life gets renewed.
+
+## SOIL
+A nice element to plant SEED in. Freezes solid when < 0 C, above 60 C turns into CLST. Absorbs water to turn into MUD, if it 
+absorbs SLTW or SWTR it might create SUGR or SALT. When it's cold it turns blueish.
+
+## MUD
+A liquid that creates slight negative pressure. Turns into BRCK above 500 C, below 0 C or above 100 C it will act solid.

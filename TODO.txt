@@ -86,13 +86,6 @@ superfluids, NEON cools into this
 - spiders, spin web
 - randomize left / right
 
-SOIL - change color if cold
-- mud when wet, absorb water
-
-MUD
-- viscoity depends on life 
-- if < 0 freezes
-- "dries out" under hot temepratures
 
 
 algoritihm:
@@ -105,7 +98,7 @@ algoritihm:
 7. set timer to re-create the web if needed?
 
 TODO 
-SOIL, MUD, SPDR, SFLD, SEED
+SPDR, SFLD, ANT
 
 gunship
  - laser weapon
@@ -116,10 +109,9 @@ Potentially repurpose vehicle code to add AI creatures.
 aliens - evil AI that need to be killed
 
 sophon
-
-
-NEON fusion
-     NEON -> NBLE + O2
+- breaks entanglement
+- instanteous communication
+-
 
 
 spaceships generate heat

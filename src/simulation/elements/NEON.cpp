@@ -38,14 +38,25 @@ Element_NEON::Element_NEON()
 	LowPressureTransition = NT;
 	HighPressure = IPH;
 	HighPressureTransition = NT;
-	LowTemperature = ITL;
-	LowTemperatureTransition = NT;
+	LowTemperature = 27.15f;
+	LowTemperatureTransition = PT_SFLD;
 	HighTemperature = ITH;
 	HighTemperatureTransition = NT;
 
 	DefaultProperties.dcolour = 0xFFFF0000;
 
+	Update = &Element_NEON::update;
 	Graphics = &Element_NEON::graphics;
+}
+
+//#TPT-Directive ElementHeader Element_NEON static int update(UPDATE_FUNC_ARGS)
+int Element_NEON::update(UPDATE_FUNC_ARGS) {
+	// Fusion
+	if (sim->pv[y / CELL][x / CELL] > 220.0f && parts[i].temp > 9273.15f) {
+		sim->pv[y / CELL][x / CELL] += 30.0f;
+		parts[i].temp = 9999.0f;
+		sim->part_change_type(i, x, y, RNG::Ref().chance(1, 2) ? PT_O2 : PT_NBLE);
+	}
 }
 
 //#TPT-Directive ElementHeader Element_NEON static int graphics(GRAPHICS_FUNC_ARGS)

@@ -47,19 +47,27 @@ Element_MUD::Element_MUD()
 }
 
 //#TPT-Directive ElementHeader Element_MUD static int update(UPDATE_FUNC_ARGS)
-int Element_MUD::update(UPDATE_FUNC_ARGS)
-{
-	// update code here
+int Element_MUD::update(UPDATE_FUNC_ARGS) {
+	// "Freeze" if cold or too hot
+	if (parts[i].temp < 273.15f || parts[i].temp > 100.0f + 273.15f)
+		parts[i].vx = parts[i].vy = 0;
 
+	sim->pv[y / CELL][x / CELL] -= 0.001f;
 	return 0;
 }
 
 //#TPT-Directive ElementHeader Element_MUD static int graphics(GRAPHICS_FUNC_ARGS)
-int Element_MUD::graphics(GRAPHICS_FUNC_ARGS)
-{
-	// graphics code here
-	// return 1 if nothing dymanic happens here
-
+int Element_MUD::graphics(GRAPHICS_FUNC_ARGS) {
+	if (cpart->temp > 273.15f && cpart->temp < 373.15f)
+		*pixel_mode |= PMODE_BLUR;
+	
+	// Ligthen if hot
+	else if (cpart->temp > 373.15) {
+		float m = 1 + (cpart->temp - 373.15) / 200.0f;
+		*colr *= m;
+		*colg *= m;
+		*colb *= m;
+	}
 	return 0;
 }
 
