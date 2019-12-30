@@ -1,6 +1,6 @@
 # CRNM
 
-![Element](https://i.imgur.com/miXrdg3.gif)
+[Click here (Large image)](https://imgur.com/miXrdg3)
 
 **Description:**  *Carolinium. Used to create long burning dark fire bombs. Explodes in layers.*
 

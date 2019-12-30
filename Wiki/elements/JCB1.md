@@ -2,7 +2,7 @@
 
 ### Jacob1
 
-![Element](https://i.imgur.com/8Yvg6Xr.gif)
+[Click here (Large image)](https://imgur.com/8Yvg6Xr)
 
 **Description:**  *Jacob1. Attacks FIGH.*
 
