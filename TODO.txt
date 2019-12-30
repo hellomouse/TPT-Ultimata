@@ -60,12 +60,23 @@ config tool
 
 
 
-cloud
-
 text plotting tool
 
 sound waves
 - sonic weapons finally :D
+
+
+wiki for spdr
+
+wiki for lasr
+
+
+missile next
+- time to arm
+- goes thru gas and liquid
+
+JCB1, flies around shooting missiles and lasers at FIGH, says quotes using drawText
+
 
 
 a realistic plant that makes SUGR from light
@@ -75,6 +86,18 @@ a realistic plant that makes SUGR from light
 ANTS that eat SUGR and make colonies
 - pherome trails
 ANT eat HONY
+Ants: (ANT) Ant will be attracted to one aother simmilar to the mechanics 
+of the bees but the raduis of searching would be smaller. When the come 
+accross sand, dust, clay dust they would either carry 1 pixel away with 
+them or be able to consume 3-5 pixels of each powder (I can't decide). 
+When the come accross (MUD) the result of combining DIRT and WATR, they 
+start to tunnel in a random patterns (in groups). They will form collonys
+ and will continue to tunnel ass long as there is enough mud. WATR, CAUS, 
+ ACID, and temperatures above 50 will kill the ants and trun them into dust. 
+ They are harmless to Players. They love being in collonies so keep that in 
+ mind when or if you plan on implimenting them. (pouring water or acid down their 
+ tunnels and killing entire ant collonies in TPT would be Phenomenal!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+
 
 superfluids, NEON cools into this
 - "flow" velocity, mimic fluid dynamics 
@@ -82,23 +105,10 @@ superfluids, NEON cools into this
 - change color not same as LO2
 
 
-- signals to spider where prey landed and what type somehow?
-- spiders, spin web
-- randomize left / right
-
-
-
-algoritihm:
-0. if can climb up go up, if on flat ground move left or right
-1. try to aim at different angles downwards
-3. shoot a web and move to midpoint
-4. shoot 2nd web and move to mid point
-5. shoot web at different radii to the web
-6. create spiral
-7. set timer to re-create the web if needed?
-
 TODO 
-SPDR, SFLD, ANT
+SFLD, ANT
+
+
 
 gunship
  - laser weapon
@@ -165,7 +175,6 @@ Two more particlemaps
 electric field
 magnetic fields
 
-add bio stuff so we can make a realistic human 
 
 food
 

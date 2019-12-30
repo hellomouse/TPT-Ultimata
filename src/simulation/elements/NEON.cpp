@@ -57,6 +57,7 @@ int Element_NEON::update(UPDATE_FUNC_ARGS) {
 		parts[i].temp = 9999.0f;
 		sim->part_change_type(i, x, y, RNG::Ref().chance(1, 2) ? PT_O2 : PT_NBLE);
 	}
+	return 0;
 }
 
 //#TPT-Directive ElementHeader Element_NEON static int graphics(GRAPHICS_FUNC_ARGS)

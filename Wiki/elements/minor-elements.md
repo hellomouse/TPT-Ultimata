@@ -40,3 +40,8 @@ absorbs SLTW or SWTR it might create SUGR or SALT. When it's cold it turns bluei
 
 ## MUD
 A liquid that creates slight negative pressure. Turns into BRCK above 500 C, below 0 C or above 100 C it will act solid.
+
+## WEB
+Sticky solid, gets displaced like GOO. Will dissolve if there are no surrounding web particles. Draws "connections" like SOAP bubbles. 
+If BIRD, ANT or BEE touches WEB it instantly turns into WEB (ctype BEE, BIRD, etc...) and can be eaten by SPDR. Captured prey will be 
+freed if their web dissolves. WEB slows down liquids and powders with weight < 50. Above 500 C it instantly ignites.

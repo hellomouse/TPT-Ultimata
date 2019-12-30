@@ -89,10 +89,16 @@ int Element_WEB::update(UPDATE_FUNC_ARGS) {
 	int rx, ry, r, rt;
 	for (rx = -1; rx < 2; ++rx)
 		for (ry = -1; ry < 2; ++ry)
-			if (BOUNDS_CHECK && (rx || ry)) {
+			if (BOUNDS_CHECK) {
 				r = pmap[y + ry][x + rx];
 				if (!r) continue;
 				rt = TYP(r);
+
+				// Same space as another web or element
+				if ((!(rx || ry) && rt == PT_WEB && ID(r) != i) || sim->pmap_count[y][x] > 3) {
+					sim->kill_part(i);
+					return 1;
+				}
 
 				// Connect to first web or solid it sees
 				// If connecting to web must be a connected web

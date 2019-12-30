@@ -2404,8 +2404,9 @@ void Simulation::init_can_move()
 	// TODO: replace with property
 	for (destinationType = 0; destinationType < PT_NUM; destinationType++)
 	{
-		// Everything can "go through" WEB
 		can_move[destinationType][PT_WEB] = 2; // Everything can go through web
+		can_move[destinationType][PT_CLUD] = 2; // Everything can go through cloud
+		can_move[destinationType][PT_JCB1] = 2; // JCB1 can go through anything
 
 		if (destinationType == PT_GLAS || destinationType == PT_PHOT || destinationType == PT_FILT || destinationType == PT_INVIS
 		 || destinationType == PT_CLNE || destinationType == PT_PCLN || destinationType == PT_BCLN || destinationType == PT_PBCN
