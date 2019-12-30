@@ -33,7 +33,7 @@ Element_LASR::Element_LASR()
 	HeatConduct = 255;
 	Description = "Laser. Hidden element.";
 
-	Properties = TYPE_ENERGY | PROP_DEADLY | PROP_LIFE_DEC | PROP_LIFE_KILL | PROP_NOAMBHEAT | PROP_NOCTYPEDRAW;
+	Properties = TYPE_ENERGY | PROP_DEADLY | PROP_LIFE_DEC | PROP_LIFE_KILL | PROP_NOCTYPEDRAW;
 
 	LowPressure = IPL;
 	LowPressureTransition = NT;

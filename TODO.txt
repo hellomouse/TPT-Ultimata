@@ -66,16 +66,9 @@ sound waves
 - sonic weapons finally :D
 
 
-wiki for spdr
-
 wiki for lasr
 
-
-missile next
-- time to arm
-- goes thru gas and liquid
-
-JCB1, flies around shooting missiles and lasers at FIGH, says quotes using drawText
+new wiki for hidden elements, move all hidden there
 
 
 

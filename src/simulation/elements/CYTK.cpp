@@ -300,7 +300,9 @@ void Element_CYTK::update_vehicle(Simulation *sim, Particle *parts, int i, const
 			sim->kill_part(sim->player2.stkmID);
 		}
 
-		for (unsigned char j = 0; j < sim->fighcount; ++j) {
+		for (unsigned int j = 0; j < MAX_FIGHTERS; ++j) {
+			if (!sim->fighters[j].spwn)
+				continue;
 			xdiff = abs(sim->fighters[j].legs[0] - parts[i].x);
 			ydiff = abs(sim->fighters[j].legs[1] - parts[i].y);
 			if (xdiff + ydiff < v.WIDTH / 2)
@@ -318,7 +320,9 @@ void Element_CYTK::update_vehicle(Simulation *sim, Particle *parts, int i, const
 		sim->vehicle_p2 = i;
 	}
 	if (parts[i].tmp2 == 0) {
-		for (unsigned char j = 0; j < sim->fighcount; ++j) {
+		for (unsigned int j = 0; j < MAX_FIGHTERS; ++j) {
+			if (!sim->fighters[j].spwn)
+				continue;
 			if (check_stkm(&sim->fighters[j], sim, parts, i)) {
 				parts[i].tmp2 = 3;
 				break;

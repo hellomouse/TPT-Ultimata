@@ -68,27 +68,54 @@ int Element_JCB1::update(UPDATE_FUNC_ARGS) {
 	 * pavg[1] - Laser 2 angle
 	 */
 
+	// Update quote
 	parts[i].tmp = parts[i].tmp % quotes.size();
 	if (sim->timer % 60 * 35 == 0)
 		parts[i].tmp++;
 
-	int min = sim->fighcount < 5 ? sim->fighcount : 5;
+	// Targetting
 	int xdiff, ydiff, tx, ty;
-	for (unsigned int j = 0; j < min; ++j) {
+	int count = 0;
+	bool aggressive;
+	for (unsigned int j = 0; j < MAX_FIGHTERS; ++j) {
+		if (!sim->fighters[j].spwn)
+			continue;
 		xdiff = sim->fighters[j].legs[0] - parts[i].x;
 		ydiff = sim->fighters[j].legs[1] - parts[i].y;
+		aggressive = true;
 		
-		if (j == 0) { // Laser 1
+		if (count == 0) { // Laser 1
 			// Ease angle1 towards the FIGH
 			parts[i].pavg[0] += (atan2(ydiff, xdiff) - parts[i].pavg[0]) / 20.0f;
 			Element_SPDR::intersect_line(sim, x, y, cos(parts[i].pavg[0]), sin(parts[i].pavg[0]), tx, ty, 9);
 			sim->CreateLine(x, y, tx, ty, PT_LASR);
 		}
-		else if (j == 0 || j == 1) { // Laser 2
+		else if (count == 0 || count == 1) { // Laser 2
 			// Ease angle2 towards the FIGH
 			parts[i].pavg[1] += (atan2(ydiff, xdiff) - parts[i].pavg[1]) / 20.0f;
 			Element_SPDR::intersect_line(sim, x, y, cos(parts[i].pavg[1]), sin(parts[i].pavg[1]), tx, ty, 9);
 			sim->CreateLine(x, y, tx, ty, PT_LASR);
+		}
+		if (RNG::Ref().chance(1, 50)) { // Guided missile
+			int ni = sim->create_part(-1, x, y + (RNG::Ref().chance(1, 2) ? -2 : 2), PT_MSSL);
+			parts[ni].pavg[0] = sim->fighters[j].legs[0];
+			parts[ni].pavg[1] = sim->fighters[j].legs[1];
+			parts[ni].life = 0;
+		}
+
+		++count;
+	}
+
+	if (!aggressive) {
+		// Project force field
+		int px = -1, py = -1, x1, y1;
+		for (float angle = 0; angle < 2 * 3.1415f; angle += 0.01f) {
+			x1 = x + 12 * cos(angle);
+			y1 = y + 12 * sin(angle);
+			if (x1 == px && y1 == py) // Avoid redrawing same spot
+				continue;
+			sim->create_part(-1, x1, y1, PT_FFLD);
+			px = x1, py = y1;
 		}
 	}
 
