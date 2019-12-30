@@ -86,6 +86,15 @@ superfluids, NEON cools into this
 - spiders, spin web
 - randomize left / right
 
+SOIL - change color if cold
+- mud when wet, absorb water
+
+MUD
+- viscoity depends on life 
+- if < 0 freezes
+- "dries out" under hot temepratures
+
+
 algoritihm:
 0. if can climb up go up, if on flat ground move left or right
 1. try to aim at different angles downwards
@@ -96,7 +105,7 @@ algoritihm:
 7. set timer to re-create the web if needed?
 
 TODO 
-SOIL, MUD, SPDR, SFLD, SEED, TIME
+SOIL, MUD, SPDR, SFLD, SEED
 
 gunship
  - laser weapon
