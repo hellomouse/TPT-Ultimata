@@ -71,6 +71,7 @@ int Element_MSSL::update(UPDATE_FUNC_ARGS) {
 	int dis = (parts[i].pavg[0] - x) * (parts[i].pavg[0] - x) + (parts[i].pavg[1] - y) * (parts[i].pavg[1] - y);
 	if (dis <= 4) {
 		sim->part_change_type(i, x, y, PT_BOMB);
+		sim->create_part(-3, x, y, PT_BMTL); // Detonate
 		return 0;
 	}
 
@@ -98,6 +99,7 @@ int Element_MSSL::update(UPDATE_FUNC_ARGS) {
 				// Explode on contact
 				if (rt != PT_MSSL && (sim->elements[rt].Properties & TYPE_SOLID || sim->elements[rt].Properties & TYPE_PART)) {
 					sim->part_change_type(i, x, y, PT_BOMB);
+					sim->create_part(-3, x, y, PT_BMTL); // Detonate
 					return 0;
 				}
 			}

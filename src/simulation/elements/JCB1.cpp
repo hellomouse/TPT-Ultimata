@@ -41,7 +41,7 @@ Element_JCB1::Element_JCB1()
 	HeatConduct = 61;
 	Description = "Jacob1. Attacks FIGH.";
 
-	Properties = TYPE_ENERGY;
+	Properties = TYPE_ENERGY | PROP_NOCTYPEDRAW;
 
 	LowPressure = IPL;
 	LowPressureTransition = NT;

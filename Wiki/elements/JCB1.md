@@ -6,9 +6,9 @@
 
 **Description:**  *Jacob1. Attacks FIGH.*
 
-Jacob1 is an STKM shaped energy particle that attacks any FIGH on screen. His primary weapons are a pair of heavy microwave lasers, which can superheat and burn through anything except DMND, CLNE, and some other materials. If there is only 1 FIGH on screen both lasers will target it, otherwise the lasers will select different targets.
+Jacob1 is an STKM shaped energy particle that attacks any FIGH on screen. His primary weapons are a pair of heavy microwave lasers, which can superheat and burn through anything except DMND, CLNE, and some other materials. If there is only 1 FIGH on screen only one laser will target it (2nd will turn off), otherwise the lasers will select different targets.
 
-JCB1 also has some auxillary guided missiles, which accelerate towards the FIGH, leaving smoke trails. Upon reaching the location it will turn into a particle of BOMB. When not attacking JCB1 creates a spherical force field around him.
+JCB1 also has some auxillary guided missiles, which accelerate towards the FIGH, leaving smoke trails. Upon reaching the location it will turn into a particle of BOMB. When not attacking JCB1 creates a circular force field around him.
 
 JCB1 will also announce TPT propoganda, cycling his set of quotes every few seconds. The quotes are as follows:
 ```
