@@ -106,7 +106,7 @@
 #define BARSIZE 0
 #else
 #define MENUSIZE 40
-#define BARSIZE 17
+#define BARSIZE 35
 #endif
 #define XRES	612
 #define YRES	384
@@ -117,6 +117,7 @@
 
 #define WINDOWW (XRES+BARSIZE)
 #define WINDOWH (YRES+MENUSIZE)
+#define MENUSPERCOL 17
 
 #define MAX_DISTANCE sqrt(pow((float)XRES, 2)+pow((float)YRES, 2))
 

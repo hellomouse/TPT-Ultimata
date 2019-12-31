@@ -349,7 +349,7 @@ GameView::GameView():
 			v->c->OpenTags();
 		}
 	};
-	tagSimulationButton = new ui::Button(ui::Point(currentX, Size.Y-16), ui::Point(227, 15), "[no tags set]", "Add simulation tags");
+	tagSimulationButton = new ui::Button(ui::Point(currentX, Size.Y-16), ui::Point(244, 15), "[no tags set]", "Add simulation tags");
 	tagSimulationButton->Appearance.HorizontalAlign = ui::Appearance::AlignLeft;
 	tagSimulationButton->SetIcon(IconTag);
 	//currentX+=252;
@@ -620,7 +620,8 @@ void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 
 void GameView::NotifyMenuListChanged(GameModel * sender)
 {
-	int currentY = WINDOWH-48;//-(sender->GetMenuList().size()*16);
+	int currentY = WINDOWH-48-32;//-(sender->GetMenuList().size()*16);
+	int currentX = WINDOWW-32;
 	for (size_t i = 0; i < menuButtons.size(); i++)
 	{
 		RemoveComponent(menuButtons[i]);
@@ -634,16 +635,20 @@ void GameView::NotifyMenuListChanged(GameModel * sender)
 	}
 	toolButtons.clear();
 	std::vector<Menu*> menuList = sender->GetMenuList();
-	for (int i = (int)menuList.size()-1; i >= 0; i--)
-	{
-		if (menuList[i]->GetVisible())
-		{
+	for (int i = (int)menuList.size()-1; i >= 0; i--) {
+		// Move to right column now
+		if (i == MENUSPERCOL - 1) {
+			currentY = WINDOWH - 48; // 1 button above, to leave room for element above
+			currentX += 16 - 1;
+		}
+
+		if (menuList[i]->GetVisible()) {
 			String tempString = "";
 			tempString += menuList[i]->GetIcon();
 			String description = menuList[i]->GetDescription();
 			if (i == SC_FAVORITES && !Favorite::Ref().AnyFavorites())
 				description += " (Use ctrl+shift+click to toggle the favorite status of an element)";
-			ui::Button * tempButton = new ui::Button(ui::Point(WINDOWW-16, currentY), ui::Point(15, 15), tempString, description);
+			ui::Button *tempButton = new ui::Button(ui::Point(currentX, currentY), ui::Point(15, 15), tempString, description);
 			tempButton->Appearance.Margin = ui::Border(0, 2, 3, 2);
 			tempButton->SetTogglable(true);
 			tempButton->SetActionCallback(new MenuAction(this, i));
@@ -1125,7 +1130,7 @@ void GameView::updateToolButtonScroll()
 		for(auto *button : toolButtons)
 		{
 			button->Position.X -= offsetDelta;
-			if (button->Position.X+button->Size.X <= 0 || (button->Position.X+button->Size.X) > XRES-2)
+			if (button->Position.X+button->Size.X <= 0 || (button->Position.X+button->Size.X) > XRES+17)
 				button->Visible = false;
 			else
 				button->Visible = true;
@@ -1356,16 +1361,16 @@ void GameView::ToolTip(ui::Point senderPosition, String toolTip)
 	else if(senderPosition.X > Size.X-BARSIZE)// < Size.Y-(quickOptionButtons.size()+1)*16)
 	{
 		this->toolTip = toolTip;
-		toolTipPosition = ui::Point(Size.X-27-Graphics::textwidth(toolTip), senderPosition.Y+3);
+		toolTipPosition = ui::Point(Size.X-BARSIZE-5-Graphics::textwidth(toolTip), senderPosition.Y+3);
 		if(toolTipPosition.Y+10 > Size.Y-MENUSIZE)
-			toolTipPosition = ui::Point(Size.X-27-Graphics::textwidth(toolTip), Size.Y-MENUSIZE-10);
+			toolTipPosition = ui::Point(Size.X-BARSIZE-5-Graphics::textwidth(toolTip), Size.Y-MENUSIZE-10);
 		isToolTipFadingIn = true;
 	}
 	// element tooltips
 	else
 	{
 		this->toolTip = toolTip;
-		toolTipPosition = ui::Point(Size.X-27-Graphics::textwidth(toolTip), Size.Y-MENUSIZE-10);
+		toolTipPosition = ui::Point(Size.X-BARSIZE-Graphics::textwidth(toolTip), Size.Y-MENUSIZE-10);
 		isToolTipFadingIn = true;
 	}
 }

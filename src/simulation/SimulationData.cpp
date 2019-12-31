@@ -135,6 +135,7 @@ std::vector<menu_section> LoadMenus()
 {
 	return
 	std::vector<menu_section>{
+		// Column 2 (right)
 		{0xE041, String("Walls"), 0, 1},
 		{0xE042, String("Electronics"), 0, 1},
 		{0xE056, String("Powered Materials"), 0, 1},
@@ -152,7 +153,10 @@ std::vector<menu_section> LoadMenus()
 		{0xE057, String("Tools"), 0, 1},
 		{0xE067, String("Favorites"), 0, 1},
 		{0xE064, String("Decoration tools"), 0, 1},
-		{0xE048, String("Cracker"), 0, 0},
+
+		// Column 1 (left).
+		// NOTE: counts up backwards, so Secret (CRACKER2) is bottom-most in the left column
+		{0xE048, String("Secret"), 0, 1},
 		{0xE048, String("Cracker!"), 0, 0},
 	};
 }

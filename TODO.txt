@@ -66,6 +66,8 @@ sound waves
 - sonic weapons finally :D
 
 
+new GOL
+
 
 rotate tool - rotate n degrees
 
@@ -78,9 +80,15 @@ a realistic plant that makes SUGR from light
 moving solid tool, solid -> moving solid 
 (pauses sim)
 
+reset spark tool?
+
+GameView:283 - tag buton
+GameView:638 - Sidem enu buttons
+GameView: 1361 - tooltips
+
 measuring tool to show line and distance and coordinates
 
-fast forward and slowdown options, make window bigger for more buttons
+fast forward and slowdown options
 
 
 COVFE
@@ -95,7 +103,6 @@ aliens - evil AI that need to be killed
 sophon
 - breaks entanglement
 - instanteous communication
--
 
 STKM portla opens to another save
 
