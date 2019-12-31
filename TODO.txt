@@ -91,9 +91,6 @@ fast forward and slowdown options, make window bigger for more buttons
 
 
 
-
-TRBN - sensor, detects moving air or particles
-
 BEEs should turn PLNT into flowers
 
 
@@ -102,9 +99,8 @@ superfluids, NEON cools into this
 - flow up surfaces
 - change color not same as LO2
 
-
 TODO 
-SFLD, TRBN
+SFLD
 
 
 gunship

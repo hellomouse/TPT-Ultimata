@@ -155,12 +155,8 @@ int Element_ANT::update(UPDATE_FUNC_ARGS) {
 }
 
 //#TPT-Directive ElementHeader Element_ANT static int graphics(GRAPHICS_FUNC_ARGS)
-int Element_ANT::graphics(GRAPHICS_FUNC_ARGS)
-{
-	// graphics code here
-	// return 1 if nothing dymanic happens here
-
-	return 0;
+int Element_ANT::graphics(GRAPHICS_FUNC_ARGS) {
+	return 1;
 }
 
 Element_ANT::~Element_ANT() {}
