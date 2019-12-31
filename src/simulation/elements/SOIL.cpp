@@ -48,13 +48,17 @@ Element_SOIL::Element_SOIL()
 
 //#TPT-Directive ElementHeader Element_SOIL static int update(UPDATE_FUNC_ARGS)
 int Element_SOIL::update(UPDATE_FUNC_ARGS) {
-	if (parts[i].temp < 273.15f) { // Permafrost, dont move
+	/**
+	 * If tmp2 = 1 is a tunnel, don't move
+	 * If tmp2 = 2 is a tunnel, allow particles
+	 */
+	if (parts[i].temp < 273.15f || parts[i].tmp2 > 0) { // Permafrost or tunnel, dont move
 		parts[i].vx = parts[i].vy = 0;
 	}
 
 	int rx, ry, r, rt;
-	for (int rx = -1; rx <= 2; ++rx)
-		for (int ry = -1; ry <= 2; ++ry)
+	for (rx = -1; rx <= 2; ++rx)
+		for (ry = -1; ry <= 2; ++ry)
 			if (BOUNDS_CHECK && (rx || ry)) {
 				r = pmap[y + ry][x + rx];
 				if (!r) continue;
@@ -94,6 +98,13 @@ int Element_SOIL::graphics(GRAPHICS_FUNC_ARGS) {
 	if (cpart->temp < 273.15f) {
 		*colg += (273.15f - cpart->temp) / 8;
 		*colb += (273.15f - cpart->temp) / 3;
+	}
+
+	// Darken if part of tunnel
+	if (cpart->tmp2 == 2) {
+		*colr *= 0.6f;
+		*colg *= 0.6f;
+		*colb *= 0.6f;
 	}
 	return 0;
 }

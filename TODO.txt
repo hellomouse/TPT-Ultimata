@@ -70,27 +70,31 @@ wiki for lasr
 
 new wiki for hidden elements, move all hidden there
 
+rotate tool - rotate n degrees
 
 in game private conversations
+
+
+
 
 a realistic plant that makes SUGR from light
 - organ differentation from SEED
 
 
-ANTS that eat SUGR and make colonies
-- pherome trails
-ANT eat HONY
-Ants: (ANT) Ant will be attracted to one aother simmilar to the mechanics 
-of the bees but the raduis of searching would be smaller. When the come 
-accross sand, dust, clay dust they would either carry 1 pixel away with 
-them or be able to consume 3-5 pixels of each powder (I can't decide). 
-When the come accross (MUD) the result of combining DIRT and WATR, they 
-start to tunnel in a random patterns (in groups). They will form collonys
- and will continue to tunnel ass long as there is enough mud. WATR, CAUS, 
- ACID, and temperatures above 50 will kill the ants and trun them into dust. 
- They are harmless to Players. They love being in collonies so keep that in 
- mind when or if you plan on implimenting them. (pouring water or acid down their 
- tunnels and killing entire ant collonies in TPT would be Phenomenal!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+
+moving solid tool, solid -> moving solid 
+(pauses sim)
+
+measuring tool to show line and distance and coordinates
+
+fast forward and slowdown options, make window bigger for more buttons
+
+
+
+
+TRBN - sensor, detects moving air or particles
+
+BEEs should turn PLNT into flowers
 
 
 superfluids, NEON cools into this
@@ -100,8 +104,7 @@ superfluids, NEON cools into this
 
 
 TODO 
-SFLD, ANT
-
+SFLD, TRBN
 
 
 gunship
@@ -143,6 +146,7 @@ Write guide for FFGN
 
 
 fancy black holes
+- suck in solids too
 
 
 

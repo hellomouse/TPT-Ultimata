@@ -36,7 +36,8 @@ Turns into FIRE if cooled below 10 K. Undergoes "renewals" where its temperature
 
 ## SOIL
 A nice element to plant SEED in. Freezes solid when < 0 C, above 60 C turns into CLST. Absorbs water to turn into MUD, if it 
-absorbs SLTW or SWTR it might create SUGR or SALT. When it's cold it turns blueish.
+absorbs SLTW or SWTR it might create SUGR or SALT. When it's cold it turns blueish. tmp2 is used for ant hills, if tmp2 = 1 or 2
+acts like a tunnel (doesn't move, and if tmp2 = 2, slightly darker and allows particles to pass).
 
 ## MUD
 A liquid that creates slight negative pressure. Turns into BRCK above 500 C, below 0 C or above 100 C it will act solid.

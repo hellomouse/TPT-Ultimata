@@ -2389,6 +2389,9 @@ void Simulation::init_can_move()
 		//nothing moves through EMBR (not sure why, but it's killed when it touches anything)
 		can_move[movingType][PT_EMBR] = 0;
 		can_move[PT_EMBR][movingType] = 0;
+		//SOIL varies depending on tunnel state
+		can_move[movingType][PT_SOIL] = 3;
+		
 		//Energy particles move through VIBR and BVBR, so it can absorb them
 		if (elements[movingType].Properties & TYPE_ENERGY)
 		{
@@ -2417,7 +2420,6 @@ void Simulation::init_can_move()
 			can_move[PT_PHOT][destinationType] = 2;
 		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_VIBR && destinationType != PT_BVBR && destinationType != PT_PRTI && destinationType != PT_PRTO)
 		{
-			can_move[PT_ANT][destinationType] = 2;
 			can_move[PT_PROT][destinationType] = 2;
 			can_move[PT_GRVT][destinationType] = 2;
 			can_move[PT_BALI][destinationType] = 2;
@@ -2456,6 +2458,7 @@ void Simulation::init_can_move()
 
 	can_move[PT_BEE][PT_WAX] = 2; // BEEs go through wax and honey
 	can_move[PT_BEE][PT_HONY] = 2;
+	can_move[PT_ANT][PT_SOIL] = 2; // ANT can go through soil
 }
 
 /*
@@ -2501,6 +2504,14 @@ int Simulation::eval_move(int pt, int nx, int ny, unsigned *rr)
 				pressureResistance = 4.0f;
 
 			if (pv[ny/CELL][nx/CELL] < -pressureResistance || pv[ny/CELL][nx/CELL] > pressureResistance)
+				result = 2;
+			else
+				result = 0;
+			break;
+		}
+		case PT_SOIL: {
+			// Allow particles if tmp2 == 2
+			if (parts[ID(r)].tmp2 == 2)
 				result = 2;
 			else
 				result = 0;
