@@ -83,7 +83,9 @@ int Element_PGEL::update(UPDATE_FUNC_ARGS)
 				}
 
 				// Stain with the gel. Basically, don't stain any of the elements below
-				else if (parts[i].tmp == 0 && rt != PT_BRAY && rt != PT_GEL && rt != PT_PRTI  && rt != PT_DMND && rt != PT_CLNE &&
+				else if (parts[i].tmp == 0 && 
+							!(sim->elements[rt].Properties & PROP_VEHICLE) &&
+							rt != PT_BRAY && rt != PT_GEL && rt != PT_PRTI  && rt != PT_DMND && rt != PT_CLNE &&
 							rt != PT_BCLN  && rt != PT_PCLN &&
 							rt != PT_PRTO && !(sim->elements[rt].Properties & TYPE_LIQUID) &&
 							!(sim->elements[rt].Properties & TYPE_GAS) && rt != PT_STKM&& rt != PT_STKM2 &&

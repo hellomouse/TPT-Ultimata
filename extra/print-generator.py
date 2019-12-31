@@ -1,6 +1,6 @@
 from PIL import Image
 
-im = Image.open("./kv2.png")
+im = Image.open("./broadsword-base.png")
 w, h = im.size
 pix = list(im.getdata())
 data = []

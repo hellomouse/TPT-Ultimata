@@ -39,6 +39,8 @@
 #include "ElementClasses.h"
 
 #include <ctime>
+#include <bitset>
+#include <algorithm>
 
 #ifdef GetUserName
 # undef GetUserName // dammit windows
@@ -2361,6 +2363,12 @@ void GameView::OnDraw()
 					sampleInfo << c->ElementResolve(type, ctype);
 					sampleInfo << " (" << QGATE_NAME::get_name(ctype) << ")";
 				}
+				else if (type == PT_BCTR) {
+					if (sample.particle.tmp2)
+						sampleInfo << "Dead ";
+					sampleInfo << c->ElementResolve(type, ctype);
+					sampleInfo << " (" << ctype << ")";
+				}
 				else
 				{
 					sampleInfo << c->ElementResolve(type, ctype);
@@ -2494,8 +2502,33 @@ void GameView::OnDraw()
 		if (showDebug)
 		{
 			StringBuilder sampleInfo;
-			sampleInfo << Format::Precision(2);
+			
 
+			// BCTR gene
+			if (type == PT_BCTR) {
+				// Blame String.h
+				std::bitset<32> t(sample.particle.ctype);
+				sampleInfo << "Gene: ";
+				std::vector<int> current;
+
+				for (unsigned int k = 0; k < 32; ++k) {
+					current.push_back(t[k] ? 1 : 0);
+
+					// Add a break and output reversed chunk, since we fucked
+					// up in expressing output correctly
+					if (k == 3 || k == 7 || k == 11 || k == 15 || k == 19 || k == 22 || k == 25 || k == 26) {
+						std::reverse(current.begin(), current.end());
+						for (auto i : current) sampleInfo << i;
+						sampleInfo << "-";
+						current.clear();
+					}
+				}
+				std::reverse(current.begin(), current.end());
+				for (auto i : current) sampleInfo << i;
+				sampleInfo << "  ";
+			}
+
+			sampleInfo << Format::Precision(2);
 			if (type)
 				sampleInfo << "#" << sample.ParticleID << ", ";
 

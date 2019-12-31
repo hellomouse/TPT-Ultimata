@@ -1,7 +1,7 @@
 # CYTK
 ### Cybertruck
 
-![Element](https://i.imgur.com/b0JLPg8.gif)
+[Click here (Large image)](https://imgur.com/b0JLPg8)
 
 
 **Description:**  Tesla Cybertruck. STKM can ride, comes with several upgrades.

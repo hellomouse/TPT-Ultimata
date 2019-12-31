@@ -6,12 +6,6 @@ Lanthanum-this ones exciting, for I could see this bridging the gap between soli
    It would only explode into such pieces in small sections at a time. Like regular metal except it's
     slightly explosive. This one needs more work.
 
-NEON
-
-Carbon uses:
-- turns to realistic diamond under pressure and heat
-- crumbles into coal
-
 
 realistic stars 
 - types:
@@ -27,12 +21,21 @@ u can add HYGN or NBLE to make it grow!
 star grows larger and becomes blue
 once fusion cycle eats up it becomes either red giant or redsupergiant
 
+planets engage in n body motaton around stars, stars n body motion other stars
+
+entire blackhole should glow when struck by a particle
+- if energy glow white
+also release hwaking radiation?
+
 red giant becomes white dwarf or maybe supernova
 supergiant goes supernova and collapses either into black hole or neutron star
 
+if blackholes collide glow
+
 mass can be sucked away by gravity
 
-
+data/intro text fori ntro blurb
+- wth mod changes 
 
 
 MOVING SOLIDS 
@@ -50,45 +53,106 @@ use RNG::Ref()
 --moony
 
 
+experiemntal: dynamic light field
+
+config tool 
+     https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
+
+
+
+text plotting tool
+
+sound waves
+- sonic weapons finally :D
+
+
+
+rotate tool - rotate n degrees
+
+in game private conversations
+
+
+a realistic plant that makes SUGR from light
+- organ differentation from SEED
+
+moving solid tool, solid -> moving solid 
+(pauses sim)
+
+measuring tool to show line and distance and coordinates
+
+fast forward and slowdown options, make window bigger for more buttons
+
+
+COVFE
+https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=21746
+
+
+
+Potentially repurpose vehicle code to add AI creatures.
+
+aliens - evil AI that need to be killed
+
+sophon
+- breaks entanglement
+- instanteous communication
+-
+
+STKM portla opens to another save
+
+spaceships generate heat
+- raidators
+
+How to add new icon
+do not used the precompiled
+1. cd font
+2. make editor unpacker packer
+3. ./unpacker > output1.txt
+4. ./editor
+5. Press + until u reach empty (looks like thermoeter)
+6. Draw, then exit
+7. rm font.h
+8. ./unpacker > font.h
+9. go to output1.txt, see last line whats the hex code
+10. conversion: convert hex to decimal, add 57194, convert back to hex
+11. copy ur font.h into data/font.cpp and add extern const in front of the arrays. Be careful NOT to delete the header or last couple lines
+12. simulation./SimulationData.cpp is where u add the hex code u calculated earlier to menu
+
 
 Write guide for FFGN
-Add SUGR to wiki
 
 
 
-force field generator 
-- default: realistic 
-- flag to be unrealistic
+
+fancy black holes
+- suck in solids too
+
+
+
+realistic shields for spaceship
 FFGN coat like SHLD
 
 
-
-gunship
- - laser weapon
- - tracking missiles
-Potentially repurpose vehicle code to add AI creatures.
 
 soviet save :D
 - with anthem
 
 
 INFO element who made the mod 
+- draw art
 
 write guide about quantum 
 have lua mod to place down quantum gates?
+- or website?
 
 
 Two more particlemaps
 electric field
 magnetic fields
 
-add bio stuff so we can make a realistic human 
-- blood, clots with air
 
 food
 
 
-fancy black holes
 
 2 row elements?
 

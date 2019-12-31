@@ -78,11 +78,10 @@ int Element_TANK::update(UPDATE_FUNC_ARGS)
 	/**
 	 * Properties:
 	 * vx, vy (velocity)
-	 * ctype = eleemnt of STKM when it entered
+	 * ctype = element of STKM when it entered
 	 * tmp2 = which STKM controls it (1 = STKM, 2 = STK2, 3 = AI car)
 	 * tmp = rocket or flamethrower (0 none, 1 rocket, 2 flamethrower)
-	 * temp = damage
-	 * life = charge
+	 * life = HP
 	 * pavg[0] = rotation
 	 * pavg[1] = direction of travel (left or right)
 	 * 
@@ -224,12 +223,11 @@ int Element_TANK::update(UPDATE_FUNC_ARGS)
 	Element_CYTK::update_vehicle(sim, parts, i, KV2, ovx, ovy);
 	return 0;
 }
-#include <iostream>
+
 //#TPT-Directive ElementHeader Element_TANK static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_TANK::graphics(GRAPHICS_FUNC_ARGS)
 {
 	*cola = 0;
-	// std::cout << ren->mousePos.X << ", " << ren->mousePos.Y << "\n";
 	draw_kv2(ren, cpart, cpart->pavg[0]);
 	return 0;
 }

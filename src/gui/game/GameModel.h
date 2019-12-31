@@ -33,6 +33,9 @@ public:
 
 class GameModel
 {
+public:
+	std::pair<float, float> get_mouse_pos();
+
 private:
 	std::vector<Notification*> notifications;
 	//int clipboardSize;

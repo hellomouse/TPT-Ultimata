@@ -73,7 +73,7 @@ Element_BALI::Element_BALI()
 	Name = "BALI";
 	Colour = PIXPACK(0xDFEFFF);
 	MenuVisible = 1;
-	MenuSection = SC_EXPLOSIVE;
+	MenuSection = SC_NUCLEAR;
 	Enabled = 1;
 
 	Advection = -0.7f;

@@ -2256,6 +2256,7 @@ void Simulation::clear_sim(void)
 	memset(portalp, 0, sizeof(portalp));
 	memset(fighters, 0, sizeof(fighters));
 	std::fill(elementCount, elementCount+PT_NUM, 0);
+	std::fill(&time_dilation[0][0], &time_dilation[0][0] + ((XRES / CELL) * (YRES / CELL)), 0);
 	elementRecount = true;
 	fighcount = 0;
 	player.spwn = 0;
@@ -2388,6 +2389,11 @@ void Simulation::init_can_move()
 		//nothing moves through EMBR (not sure why, but it's killed when it touches anything)
 		can_move[movingType][PT_EMBR] = 0;
 		can_move[PT_EMBR][movingType] = 0;
+		//SOIL varies depending on tunnel state
+		can_move[movingType][PT_SOIL] = 3;
+		//TRBN invisible to all
+		can_move[movingType][PT_TRBN] = 2;
+		
 		//Energy particles move through VIBR and BVBR, so it can absorb them
 		if (elements[movingType].Properties & TYPE_ENERGY)
 		{
@@ -2397,17 +2403,22 @@ void Simulation::init_can_move()
 
 		//SAWD cannot be displaced by other powders
 		if (elements[movingType].Properties & TYPE_PART)
-			can_move[movingType][PT_SAWD] = 0;
+			can_move[movingType][PT_SAWD] = 1;
 	}
 	//a list of lots of things PHOT can move through
 	// TODO: replace with property
 	for (destinationType = 0; destinationType < PT_NUM; destinationType++)
 	{
+		can_move[destinationType][PT_WEB] = 2; // Everything can go through web
+		can_move[destinationType][PT_CLUD] = 2; // Everything can go through cloud
+		can_move[destinationType][PT_JCB1] = 2; // JCB1 can go through anything
+
 		if (destinationType == PT_GLAS || destinationType == PT_PHOT || destinationType == PT_FILT || destinationType == PT_INVIS
 		 || destinationType == PT_CLNE || destinationType == PT_PCLN || destinationType == PT_BCLN || destinationType == PT_PBCN
 		 || destinationType == PT_WATR || destinationType == PT_DSTW || destinationType == PT_SLTW || destinationType == PT_GLOW
 		 || destinationType == PT_ISOZ || destinationType == PT_ISZS || destinationType == PT_QRTZ || destinationType == PT_PQRT
-		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5)
+		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5
+		 || destinationType == PT_RDND || destinationType == PT_SWTR)
 			can_move[PT_PHOT][destinationType] = 2;
 		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_VIBR && destinationType != PT_BVBR && destinationType != PT_PRTI && destinationType != PT_PRTO)
 		{
@@ -2446,6 +2457,10 @@ void Simulation::init_can_move()
 	can_move[PT_THDR][PT_THDR] = 2;
 	can_move[PT_EMBR][PT_EMBR] = 2;
 	can_move[PT_TRON][PT_SWCH] = 3;
+
+	can_move[PT_BEE][PT_WAX] = 2; // BEEs go through wax and honey
+	can_move[PT_BEE][PT_HONY] = 2;
+	can_move[PT_ANT][PT_SOIL] = 2; // ANT can go through soil
 }
 
 /*
@@ -2491,6 +2506,14 @@ int Simulation::eval_move(int pt, int nx, int ny, unsigned *rr)
 				pressureResistance = 4.0f;
 
 			if (pv[ny/CELL][nx/CELL] < -pressureResistance || pv[ny/CELL][nx/CELL] > pressureResistance)
+				result = 2;
+			else
+				result = 0;
+			break;
+		}
+		case PT_SOIL: {
+			// Allow particles if tmp2 == 2
+			if (parts[ID(r)].tmp2 == 2)
 				result = 2;
 			else
 				result = 0;
@@ -2930,7 +2953,7 @@ int Simulation::is_blocking(int t, int x, int y)
 	if (t & REFRACT) {
 		if (x<0 || y<0 || x>=XRES || y>=YRES)
 			return 0;
-		if (TYP(pmap[y][x]) == PT_GLAS || TYP(pmap[y][x]) == PT_BGLA)
+		if (TYP(pmap[y][x]) == PT_GLAS || TYP(pmap[y][x]) == PT_BGLA || TYP(pmap[y][x]) == PT_RDND)
 			return 1;
 		return 0;
 	}
@@ -3500,6 +3523,12 @@ void Simulation::UpdateParticles(int start, int end)
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
 
+			// Time dilation: skip update
+			if (!(elements[t].Properties & PROP_NO_TIME) &&
+					!(t == PT_GBMB && parts[i].life > 0) &&  // GBMB needs to update to make gravity
+					time_dilation[y / CELL][x / CELL] < 0 && timer % abs(time_dilation[y / CELL][x / CELL]) != 0)
+				continue;
+
 			//this kills any particle out of the screen, or in a wall where it isn't supposed to go
 			if (x<CELL || y<CELL || x>=XRES-CELL || y>=YRES-CELL ||
 			        (bmap[y/CELL][x/CELL] &&
@@ -3739,7 +3768,7 @@ void Simulation::UpdateParticles(int start, int end)
 					ctemph = ctempl = pt;
 					// change boiling point with pressure
 					if (((elements[t].Properties&TYPE_LIQUID) && IsValidElement(elements[t].HighTemperatureTransition) && (elements[elements[t].HighTemperatureTransition].Properties&TYPE_GAS))
-					        || t==PT_LNTG || t==PT_SLTW)
+					        || t==PT_LNTG || t==PT_SLTW || t==PT_SWTR)
 						ctemph -= 2.0f*pv[y/CELL][x/CELL];
 					else if (((elements[t].Properties&TYPE_GAS) && IsValidElement(elements[t].LowTemperatureTransition) && (elements[elements[t].LowTemperatureTransition].Properties&TYPE_LIQUID))
 					         || t==PT_WTRV)
@@ -3809,6 +3838,9 @@ void Simulation::UpdateParticles(int start, int end)
 							}
 							else
 								s = 0;
+						}
+						else if (t == PT_SWTR) {
+							t = RNG::Ref().chance(1, 4) ? PT_SUGR : PT_WTRV;
 						}
 						else if (t == PT_SLTW)
 						{
@@ -4139,7 +4171,7 @@ void Simulation::UpdateParticles(int start, int end)
 			{
 				if ((*(elements[t].Update))(this, i, x, y, surround_space, nt, parts, pmap))
 					continue;
-				else if (t==PT_WARP)
+				else if (t==PT_WARP || t==PT_BCTR || t==PT_FISH || t==PT_MSSL)
 				{
 					// Warp does some movement in its update func, update variables to avoid incorrect data in pmap
 					x = (int)(parts[i].x+0.5f);
@@ -4335,8 +4367,8 @@ killed:
 					{
 						int rt = TYP(pmap[fin_y][fin_x]);
 						int lt = TYP(pmap[y][x]);
-						int rt_glas = (rt == PT_GLAS) || (rt == PT_BGLA);
-						int lt_glas = (lt == PT_GLAS) || (lt == PT_BGLA);
+						int rt_glas = (rt == PT_RDND) || (rt == PT_GLAS) || (rt == PT_BGLA);
+						int lt_glas = (rt == PT_RDND) || (lt == PT_GLAS) || (lt == PT_BGLA);
 						if ((rt_glas && !lt_glas) || (lt_glas && !rt_glas))
 						{
 							if (!get_normal_interp(REFRACT|t, parts[i].x, parts[i].y, parts[i].vx, parts[i].vy, &nrx, &nry)) {
@@ -4733,6 +4765,9 @@ killed:
 					goto update_loop_begin;
 			}
 movedone:
+			// Time dilation: speed up
+			if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0 && update_count <= time_dilation[y / CELL][x / CELL])
+				goto update_loop_begin;
 			continue;
 		}
 	}
@@ -4894,6 +4929,7 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
 			bool inBounds = false;
+
 			if (x>=0 && y>=0 && x<XRES && y<YRES)
 			{
 				if (elements[t].Properties & TYPE_ENERGY)
@@ -4913,6 +4949,10 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 			lastPartUsed = i;
 			NUM_PARTS ++;
 
+			// Time dilation: slow down
+			if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] < 0 && timer % abs(time_dilation[y / CELL][x / CELL]) != 0)
+				continue;
+
 			//decrease particle life
 			if (do_life_dec && (!sys_pause || framerender))
 			{
@@ -4929,6 +4969,12 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 				if (parts[i].life>0 && (elem_properties&PROP_LIFE_DEC) && !(inBounds && bmap[y/CELL][x/CELL] == WL_STASIS && emap[y/CELL][x/CELL]<8))
 				{
 					// automatically decrease life
+					// Time dilation: speed up
+					if (!(elements[t].Properties & PROP_NO_TIME) && time_dilation[y / CELL][x / CELL] > 0) {
+						parts[i].life -= time_dilation[y / CELL][x / CELL];
+						if (parts[i].life < 1)
+							parts[i].life = 1;
+					}
 					parts[i].life--;
 					if (parts[i].life<=0 && (elem_properties&(PROP_LIFE_KILL_DEC|PROP_LIFE_KILL)))
 					{
@@ -5038,6 +5084,23 @@ void Simulation::BeforeSim()
 	// Clear stasis field every couple of frames
 	if (timer % 4 == 0)
 		stasis->Clear();
+
+	// Tick time dilation down to 0
+	if (timer % 4 == 0) {
+		for (unsigned int y = 0; y < YRES / CELL; ++y)
+			for (unsigned int x = 0; x < XRES / CELL; ++x) {
+				if (time_dilation[y][x] < 0)
+					++time_dilation[y][x];
+				else if (time_dilation[y][x] > 0)
+					--time_dilation[y][x];
+
+				// Constrain
+				if (time_dilation[y][x] < MIN_TIME_DILATION)
+					time_dilation[y][x] = MIN_TIME_DILATION;
+				else if (time_dilation[y][x] > MAX_TIME_DILATION)
+					time_dilation[y][x] = MAX_TIME_DILATION;
+			}
+	}
 
 	if (!sys_pause||framerender)
 	{
@@ -5394,4 +5457,8 @@ int Simulation::remainder_p(int x, int y)
 float Simulation::remainder_p(float x, float y)
 {
 	return std::fmod(x, y) + (x>=0 ? 0 : y);
+}
+
+GameModel* Simulation::getModel() {
+	return model;
 }

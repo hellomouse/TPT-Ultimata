@@ -34,6 +34,7 @@ public:
 };
 
 void draw_px(const std::vector<VehiclePixel> &img, Renderer *ren, Particle *cpart, float rotation);
+void draw_px_raw(const std::vector<VehiclePixel> &img, Renderer *ren, Particle *cpart, int cx, int cy, bool flip, float rotation);
 void rotate(int &x, int &y, float rotation);
 void rotate(float &x, float &y, float rotation);
 

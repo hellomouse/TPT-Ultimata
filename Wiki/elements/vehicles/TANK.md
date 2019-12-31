@@ -24,7 +24,7 @@ Tank will emit sparks and fire when damaged. TANK can instantly crush cybertruck
 ## Technical
 The tank is just a 1 px powder, the tank is entirely a graphic. It does some hacky collision detection to mimic rotation.
 
-Note that any heat damage can only be detected by the =core (the center pixel), so for "realism" turn on ambient heat. Will instantly die if its temperature goes over 3000 K, otherwise if above 473.15 K decreases 1 HP per frame.
+Note that any heat damage can only be detected by the core (the center pixel), so for "realism" turn on ambient heat. Will instantly die if its temperature goes over 3000 K, otherwise if above 473.15 K decreases 1 HP per frame.
 
 
 #### Properties
