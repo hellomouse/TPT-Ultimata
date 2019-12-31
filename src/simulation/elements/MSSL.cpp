@@ -1,5 +1,14 @@
 #include "simulation/ElementCommon.h"
 
+#define DETONATE sim->create_part(-1, x + 1, y + 1, PT_BMTL); \
+				 sim->create_part(-1, x + 1, y - 1, PT_BMTL); \
+				 sim->create_part(-1, x - 1, y + 1, PT_BMTL); \
+				 sim->create_part(-1, x - 1, y - 1, PT_BMTL); \
+				 sim->create_part(-1, x, y + 1, PT_BMTL); \
+				 sim->create_part(-1, x, y - 1, PT_BMTL); \
+				 sim->create_part(-1, x - 1, y, PT_BMTL); \
+				 sim->create_part(-1, x + 1, y, PT_BMTL);
+
 //#TPT-Directive ElementClass Element_MSSL PT_MSSL 237
 Element_MSSL::Element_MSSL()
 {
@@ -71,7 +80,7 @@ int Element_MSSL::update(UPDATE_FUNC_ARGS) {
 	int dis = (parts[i].pavg[0] - x) * (parts[i].pavg[0] - x) + (parts[i].pavg[1] - y) * (parts[i].pavg[1] - y);
 	if (dis <= 4) {
 		sim->part_change_type(i, x, y, PT_BOMB);
-		sim->create_part(-3, x, y, PT_BMTL); // Detonate
+		DETONATE
 		return 0;
 	}
 
@@ -99,7 +108,7 @@ int Element_MSSL::update(UPDATE_FUNC_ARGS) {
 				// Explode on contact
 				if (rt != PT_MSSL && (sim->elements[rt].Properties & TYPE_SOLID || sim->elements[rt].Properties & TYPE_PART)) {
 					sim->part_change_type(i, x, y, PT_BOMB);
-					sim->create_part(-3, x, y, PT_BMTL); // Detonate
+					DETONATE
 					return 0;
 				}
 			}

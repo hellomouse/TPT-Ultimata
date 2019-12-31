@@ -135,8 +135,8 @@ int Element_ANT::update(UPDATE_FUNC_ARGS) {
 			return 0;
 		}
 
-		parts[i].x = x + rx;
-		parts[i].y = y + ry;
+		parts[i].vx = rx;
+		parts[i].vy = ry;
 
 		// Turmite logic, what tmp to toggle depends on self state
 		int orgtmp = parts[ID(r)].tmp2;

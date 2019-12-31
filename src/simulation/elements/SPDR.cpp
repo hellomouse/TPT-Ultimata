@@ -180,8 +180,8 @@ int Element_SPDR::update(UPDATE_FUNC_ARGS) {
 
 				// Randomly move along webs if its tmp2 is 3
 				else if (rt == PT_WEB && parts[i].tmp2 == 3 && RNG::Ref().chance(1, 8)) {
-					parts[i].x += rx;
-					parts[i].y += ry;
+					parts[i].vx = rx;
+					parts[i].vy += ry;
 					return 0;
 				}
 			}

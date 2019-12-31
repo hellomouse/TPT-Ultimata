@@ -80,8 +80,8 @@ int Element_JCB1::update(UPDATE_FUNC_ARGS) {
 	for (unsigned int j = 0; j < MAX_FIGHTERS; ++j) {
 		if (!sim->fighters[j].spwn)
 			continue;
-		xdiff = sim->fighters[j].legs[0] - parts[i].x;
-		ydiff = sim->fighters[j].legs[1] - parts[i].y;
+		xdiff = sim->fighters[j].legs[14] - parts[i].x;
+		ydiff = sim->fighters[j].legs[15] - parts[i].y;
 		aggressive = true;
 		
 		if (count == 0) { // Laser 1
@@ -98,8 +98,8 @@ int Element_JCB1::update(UPDATE_FUNC_ARGS) {
 		}
 		if (RNG::Ref().chance(1, 50)) { // Guided missile
 			int ni = sim->create_part(-1, x, y + (RNG::Ref().chance(1, 2) ? -2 : 2), PT_MSSL);
-			parts[ni].pavg[0] = sim->fighters[j].legs[0];
-			parts[ni].pavg[1] = sim->fighters[j].legs[1];
+			parts[ni].pavg[0] = sim->fighters[j].legs[14];
+			parts[ni].pavg[1] = sim->fighters[j].legs[15];
 			parts[ni].life = 0;
 		}
 

@@ -66,21 +66,14 @@ sound waves
 - sonic weapons finally :D
 
 
-wiki for lasr
-
-new wiki for hidden elements, move all hidden there
 
 rotate tool - rotate n degrees
 
 in game private conversations
 
 
-
-
 a realistic plant that makes SUGR from light
 - organ differentation from SEED
-
-
 
 moving solid tool, solid -> moving solid 
 (pauses sim)
@@ -90,23 +83,15 @@ measuring tool to show line and distance and coordinates
 fast forward and slowdown options, make window bigger for more buttons
 
 
-
-BEEs should turn PLNT into flowers
-
-
-superfluids, NEON cools into this
-- "flow" velocity, mimic fluid dynamics 
-- flow up surfaces
-- change color not same as LO2
-
-TODO 
-SFLD
+COVFE
+https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=21746
 
 
 gunship
  - laser weapon
  - tracking missiles
  - engines suck air and kill birds
+
 Potentially repurpose vehicle code to add AI creatures.
 
 aliens - evil AI that need to be killed
@@ -116,6 +101,7 @@ sophon
 - instanteous communication
 -
 
+STKM portla opens to another save
 
 spaceships generate heat
 - raidators
@@ -146,9 +132,7 @@ fancy black holes
 
 
 
-force field generator 
-- default: realistic 
-- flag to be unrealistic
+realistic shields for spaceship
 FFGN coat like SHLD
 
 

@@ -1,8 +1,5 @@
 # Minor Elements
 
-## BOWR (Bowserinator)
-A more destructive version of SING (or less), generates MAX heat, MAX pressure, MAX gravity, fusion, and lightning. And eats particles. This element is hidden.
-
 ## GLUE
 Sticks powders together into solids (Not a moving solid, just a solid). Hardens on contact or pressure, and melts under higher temperatures (> 70 C). Above 300 C turns to CMRC. Converts GLOW into LCRY. Extremely flammable.
 
@@ -46,3 +43,6 @@ A liquid that creates slight negative pressure. Turns into BRCK above 500 C, bel
 Sticky solid, gets displaced like GOO. Will dissolve if there are no surrounding web particles. Draws "connections" like SOAP bubbles. 
 If BIRD, ANT or BEE touches WEB it instantly turns into WEB (ctype BEE, BIRD, etc...) and can be eaten by SPDR. Captured prey will be 
 freed if their web dissolves. WEB slows down liquids and powders with weight < 50. Above 500 C it instantly ignites.
+
+## SFLD (Superfluid)
+Evaporates into NEON at 27.102 K, likes to "flow" along solids. Suffers no loss, air drag or diffusion, and has max thermal conductivity.
