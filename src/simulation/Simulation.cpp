@@ -5458,3 +5458,7 @@ float Simulation::remainder_p(float x, float y)
 {
 	return std::fmod(x, y) + (x>=0 ? 0 : y);
 }
+
+GameModel* Simulation::getModel() {
+	return model;
+}

@@ -1,6 +1,6 @@
 from PIL import Image
 
-im = Image.open("./jacob1.png")
+im = Image.open("./broadsword-base.png")
 w, h = im.size
 pix = list(im.getdata())
 data = []
@@ -14,8 +14,8 @@ for i, px in enumerate(pix):
 		
 # Process to graphics
 out = ""
-draw_str = "ren->addpixel(cpart->x + {x}, cpart->y + {y}, {r}, {g}, {b}, {a});\n"
-# draw_str = "VehiclePixel({x}, {y}, {r}, {g}, {b}),\n"
+# draw_str = "ren->addpixel(cpart->x + {x}, cpart->y + {y}, {r}, {g}, {b}, {a});\n"
+draw_str = "VehiclePixel({x}, {y}, {r}, {g}, {b}),\n"
 
 for d in data:
 	x = d[0]

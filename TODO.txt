@@ -86,11 +86,12 @@ fast forward and slowdown options, make window bigger for more buttons
 COVFE
 https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=21746
 
+TRBN - turn BIRD into blood
 
 gunship
- - laser weapon
- - tracking missiles
- - engines suck air and kill birds
+ - color
+
+organize wiki folder by category
 
 Potentially repurpose vehicle code to add AI creatures.
 
