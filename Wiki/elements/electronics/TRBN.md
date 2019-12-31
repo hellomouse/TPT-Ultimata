@@ -10,6 +10,8 @@ Sparks any adjacent conductors when it detects an air velocity greater than its 
 
 Note that TRBN only sparks adjacent conductors, so if you have TRBN off to the side it won't activate because another connected TRBN is activated. The metal must be adjacent to an *active* turbine. At 2000 C TRBN melts into molten METL.
 
+Spinning TRBN will turn BIRD into BLOD.
+
 
 ## Technical
 #### Properties

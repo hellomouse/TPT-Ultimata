@@ -86,8 +86,6 @@ fast forward and slowdown options, make window bigger for more buttons
 COVFE
 https://powdertoy.co.uk/Discussions/Thread/View.html?Thread=21746
 
-TRBN - turn BIRD into blood
-
 
 
 Potentially repurpose vehicle code to add AI creatures.

@@ -75,6 +75,11 @@ int Element_TRBN::update(UPDATE_FUNC_ARGS) {
 				already_animate = true;
 			}
 
+			// Shred birds
+			if (fastpart && TYP(r) == PT_BIRD) {
+				sim->part_change_type(ID(r), x + rx, y + ry, PT_BLOD);
+			}
+
 			if (fastpart && sim->elements[TYP(r)].Properties & PROP_CONDUCTS) {
 				parts[ID(r)].ctype = TYP(r);
 				parts[ID(r)].life = 4;
