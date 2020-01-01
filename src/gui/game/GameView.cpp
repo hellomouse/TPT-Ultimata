@@ -493,8 +493,11 @@ class GameView::MenuAction: public ui::ButtonAction
 public:
 	int menuID;
 	bool needsClick;
-	MenuAction(GameView * _v, int menuID_)
-	{
+	MenuAction(GameView * _v, int menuID_, bool needs_click) {
+		v = _v, menuID = menuID_;
+		needsClick = needs_click;
+	}
+	MenuAction(GameView * _v, int menuID_) {
 		v = _v;
 		menuID = menuID_;
 		 if (menuID == SC_DECO)
@@ -603,10 +606,12 @@ void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 	}
 
 	int currentY = 1;
+	int currentDX = -32;
+	unsigned short i = 0;
+
 	std::vector<QuickOption*> optionList = sender->GetQuickOptions();
-	for(auto *option : optionList)
-	{
-		ui::Button * tempButton = new ui::Button(ui::Point(WINDOWW-16, currentY), ui::Point(15, 15), option->GetIcon(), option->GetDescription());
+	for(auto *option : optionList) {
+		ui::Button * tempButton = new ui::Button(ui::Point(WINDOWW + currentDX, currentY), ui::Point(15, 15), option->GetIcon(), option->GetDescription());
 		//tempButton->Appearance.Margin = ui::Border(0, 2, 3, 2);
 		tempButton->SetTogglable(true);
 		tempButton->SetActionCallback(new OptionAction(option));
@@ -614,14 +619,22 @@ void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 		AddComponent(tempButton);
 
 		quickOptionButtons.push_back(tempButton);
-		currentY += 16;
+
+		// Switch to right col when reached max size
+		if (i == MAX_QUICKOPTIONS_PER_COL - 1) {
+			currentY = 1;
+			currentDX = -16;
+		} else
+			currentY += 15;
+		++i;
 	}
 }
 
 void GameView::NotifyMenuListChanged(GameModel * sender)
 {
 	int currentY = WINDOWH-48-32;//-(sender->GetMenuList().size()*16);
-	int currentX = WINDOWW-32;
+	int currentX = WINDOWW-32; // Start on left col
+
 	for (size_t i = 0; i < menuButtons.size(); i++)
 	{
 		RemoveComponent(menuButtons[i]);
@@ -633,13 +646,13 @@ void GameView::NotifyMenuListChanged(GameModel * sender)
 		RemoveComponent(toolButtons[i]);
 		delete toolButtons[i];
 	}
-	toolButtons.clear();
+
 	std::vector<Menu*> menuList = sender->GetMenuList();
 	for (int i = (int)menuList.size()-1; i >= 0; i--) {
 		// Move to right column now
-		if (i == MENUSPERCOL - 1) {
-			currentY = WINDOWH - 48; // 1 button above, to leave room for element above
-			currentX += 16 - 1;
+		if (i == (int)menuList.size()-2) {
+			currentY = WINDOWH - 48; // 1 button above, to leave room for menu above
+			currentX += 16;
 		}
 
 		if (menuList[i]->GetVisible()) {
@@ -652,7 +665,8 @@ void GameView::NotifyMenuListChanged(GameModel * sender)
 			tempButton->Appearance.Margin = ui::Border(0, 2, 3, 2);
 			tempButton->SetTogglable(true);
 			tempButton->SetActionCallback(new MenuAction(this, i));
-			currentY-=16;
+
+			currentY-=16; // Use -15 if you need more menu space, may break some lua scripts
 			AddComponent(tempButton);
 			menuButtons.push_back(tempButton);
 		}

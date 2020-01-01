@@ -356,6 +356,8 @@ tpt.partsdata = nil");
 
 	ui::Engine::Ref().LastTick(Platform::GetTime());
 	luaopen_eventcompat(l);
+	luaopen_scriptmanager(l);
+	luaopen_multiplayer(l);
 }
 
 void LuaScriptInterface::Init()

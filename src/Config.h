@@ -117,7 +117,7 @@
 
 #define WINDOWW (XRES+BARSIZE)
 #define WINDOWH (YRES+MENUSIZE)
-#define MENUSPERCOL 17
+#define MAX_QUICKOPTIONS_PER_COL 5
 
 #define MAX_DISTANCE sqrt(pow((float)XRES, 2)+pow((float)YRES, 2))
 

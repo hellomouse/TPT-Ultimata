@@ -17,11 +17,12 @@
 #define SC_ORGANIC 10
 #define SC_NUCLEAR 11
 #define SC_SPECIAL 12
-#define SC_LIFE 13
-#define SC_TOOL 14
-#define SC_FAVORITES 15
-#define SC_DECO 16
-#define SC_CRACKER2 17
+#define SC_CRACKER2 13
+#define SC_LIFE 14
+#define SC_TOOL 15
+#define SC_FAVORITES 16
+#define SC_DECO 17
+// Below is hidden
 #define SC_CRACKER 18
 #define SC_TOTAL 18
 
