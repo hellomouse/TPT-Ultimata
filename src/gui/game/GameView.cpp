@@ -630,19 +630,38 @@ void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 	}
 }
 
-void GameView::NotifyMenuListChanged(GameModel * sender)
-{
+void GameView::NotifyMenuListChanged(GameModel * sender) {
+	// Additional "custom" setting buttons
+
+	// Reset spark button, the height is 1 menu gap below the embedded script multiplayer button,
+	// or 18 menu options up (Yeah it's hardcoded :( )
+	// The gap is to avoid misclicks
+	class Respark : public ui::ButtonAction {
+	GameView * v;
+	public:
+		Respark(GameView * _v) { v = _v; }
+		void ActionCallback(ui::Button * sender) { v->c->ResetSpark(); }
+	};
+	ui::Button *resetSparkButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH-16*18), ui::Point(15, 15), "", "Reset Spark");
+	resetSparkButton->SetIcon(IconReload);
+	resetSparkButton->SetActionCallback(new Respark(this));
+	AddComponent(resetSparkButton);
+
+	// Toggle button for FPS options and gauge
+	ui::Button *FPSButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH-16*17), ui::Point(15, 47), "F", "FPS Options");
+	FPSButton->SetActionCallback(new Respark(this));
+	AddComponent(FPSButton);
+
+	// Menu listing
 	int currentY = WINDOWH-48-32;//-(sender->GetMenuList().size()*16);
 	int currentX = WINDOWW-32; // Start on left col
 
-	for (size_t i = 0; i < menuButtons.size(); i++)
-	{
+	for (size_t i = 0; i < menuButtons.size(); i++) {
 		RemoveComponent(menuButtons[i]);
 		delete menuButtons[i];
 	}
 	menuButtons.clear();
-	for (size_t i = 0; i < toolButtons.size(); i++)
-	{
+	for (size_t i = 0; i < toolButtons.size(); i++) {
 		RemoveComponent(toolButtons[i]);
 		delete toolButtons[i];
 	}

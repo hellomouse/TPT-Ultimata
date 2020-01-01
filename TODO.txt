@@ -84,7 +84,23 @@ moving solid tool, solid -> moving solid
 chronodisplay 
 vstasis display
 
-reset spark tool?
+background element
+
+
+python file2c.py multiplayer.lua.cpp multiplayer.lua multiplayer.lua.orig
+
+quick options
+- stasis
+- time
+- electromagnetic 
+- rulers
+
+left column:
+- popup for fps adjustmenet
+     - fast forward and slowdown options
+     - set fps as number
+     - fps gague
+
 
 side menu for options reee
 
@@ -123,12 +139,12 @@ end
 local jacobsmod_old_menu_check = false
 local showbutton = ui_button.new(614,getypos(),14,14,function() if using_manager and not MANAGER.hidden then _print("minimize the manager before opening TPTMP") return end if not hooks_enabled then TPTMP.enableMultiplayer() end L.chatHidden=false TPTMP.chatHidden=false L.flashChat=false end,"<<")
 
+font only broken in xserv - normal 
+- embedded lua scripts not running on windows
 
-font is broken :(
 
 measuring tool to show line and distance and coordinates
 
-fast forward and slowdown options
 
 ERR element - ERROR and destroys stuff
 

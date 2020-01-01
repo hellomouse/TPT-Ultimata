@@ -15,7 +15,7 @@ void luaopen_multiplayer(lua_State *l)
 #else
 	unsigned int size = 0;
 	const char* data = NULL;
-	Platform::LoadFileInResource(IDI_multiplayer, LUASCRIPT, size, data);
+	Platform::LoadFileInResource(IDI_MULTIPLAYER, LUASCRIPT, size, data);
 	char *buffer = new char[size+1];
 	::memcpy(buffer, data, size);
 	buffer[size] = 0;

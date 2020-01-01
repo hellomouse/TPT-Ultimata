@@ -133,8 +133,7 @@ std::vector<wall_type> LoadWalls()
 
 std::vector<menu_section> LoadMenus()
 {
-	return
-	std::vector<menu_section>{
+	return std::vector<menu_section>{
 		// Column 2 (right)
 		{0xE041, String("Walls"), 0, 1},
 		{0xE042, String("Electronics"), 0, 1},
@@ -147,18 +146,18 @@ std::vector<menu_section> LoadMenus()
 		{0xE050, String("Powders"), 0, 1},
 		{0xE051, String("Solids"), 0, 1},
 		{0xE069, String("Organic"), 0, 1},
+		{0x80,   String("Space"), 0, 1},
 		{0xE046, String("Radioactive"), 0, 1},
 		{0xE04C, String("Special"), 0, 1},
 		{0xE048, String("Secret"), 0, 1},
 		{0xE052, String("Game Of Life"), 0, 1},
 		{0xE057, String("Tools"), 0, 1},
 		{0xE067, String("Favorites"), 0, 1},
-		
+
 		// Column 1 (left).
 		// NOTE: counts up backwards, so Deco is bottom
 		{0xE064, String("Decoration tools"), 0, 1},
-		{0xE048, String("Cracker!"), 0, 0},
-	};
+		{0xE080, String("Cracker!"), 0, 0}};
 }
 
 std::vector<unsigned int> LoadLatent()
