@@ -12,7 +12,7 @@ Element_COTR::Element_COTR()
 	Name = "COTR";
 	Colour = PIXPACK(0xAAAAAA);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_SPACE;
 	Enabled = 1;
 
 	// element properties here

@@ -18,7 +18,7 @@ Element_JCB1::Element_JCB1()
 	Name = "JCB1";
 	Colour = PIXPACK(0x094867);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_CRACKER2;
 	Enabled = 1;
 
 	Advection = 0.0f;

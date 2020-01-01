@@ -9,7 +9,7 @@ Element_CYTK::Element_CYTK()
 	Name = "CYTK";
 	Colour = PIXPACK(0x4D5564);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_CRACKER2;
 	Enabled = 1;
 
 	Advection = 0.01f;

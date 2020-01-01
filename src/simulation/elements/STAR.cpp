@@ -7,7 +7,7 @@ Element_STAR::Element_STAR()
 	Name = "STAR";
 	Colour = PIXPACK(0xFFFF00);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_SPACE;
 	Enabled = 1;
 
 	Advection = 0.00f;

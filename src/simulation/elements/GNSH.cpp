@@ -10,7 +10,7 @@ Element_GNSH::Element_GNSH()
 	Name = "GNSH";
 	Colour = PIXPACK(0x8fa7b3);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_CRACKER2;
 	Enabled = 1;
 
 	Advection = 0.01f;

@@ -9,7 +9,7 @@ Element_TANK::Element_TANK()
 	Name = "TANK";
 	Colour = PIXPACK(0x52482E);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_CRACKER2;
 	Enabled = 1;
 
 	Advection = 0.01f;

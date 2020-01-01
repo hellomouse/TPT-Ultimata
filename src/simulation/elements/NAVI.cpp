@@ -7,7 +7,7 @@ Element_NAVI::Element_NAVI()
 	Name = "NAVI";
 	Colour = PIXPACK(0xFFFFFF);
 	MenuVisible = 1;
-	MenuSection = SC_SPECIAL;
+	MenuSection = SC_SPACE;
 	Enabled = 1;
 
 	// element properties here
