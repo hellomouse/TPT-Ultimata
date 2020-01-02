@@ -2388,8 +2388,10 @@ void Renderer::draw_time_dilation() {
 
 			for (j = 0; j < CELL; j++) // Draws the colors
 				for (i = 0; i < CELL; i++) {
-					float m = 0.5f + 0.5f * (1 - (abs(CELL / 2 - j) + abs(CELL / 2 - i)) / (float)CELL);
-					addpixel(x * CELL + i, y * CELL + j, r, g, b, (int)(m * strength * 0.9f));
+					if (!sim->pmap[y * CELL + j][x * CELL + i]) {
+						float m = 0.5f + 0.5f * (1 - (abs(CELL / 2 - j) + abs(CELL / 2 - i)) / (float)CELL);
+						addpixel(x * CELL + i, y * CELL + j, r, g, b, (int)(m * strength * 0.9f));
+					}
 				}
 		}
 	}

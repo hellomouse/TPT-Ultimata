@@ -72,7 +72,7 @@ int Element_DFLM::update(UPDATE_FUNC_ARGS) {
 				// Randomly "burn" particles
 				if (rt != PT_DMND && rt != PT_CLNE && rt != PT_BCLN && rt != PT_PCLN && rt != PT_VOID && rt != PT_PVOD &&
 					rt != PT_BHOL && rt != PT_WHOL && rt != PT_NBHL && rt != PT_NWHL && rt != PT_CRNM &&
-					rt != PT_FIRE && rt != PT_PLSM
+					rt != PT_FIRE && rt != PT_PLSM && rt != PT_FILL
 						&& RNG::Ref().chance(1, 200)) {
 					int ni = sim->part_change_type(ID(r), x + rx, y + ry, PT_DFLM);
 					parts[ni].tmp = RNG::Ref().chance(1, 2); // Chance to become killable DFLM

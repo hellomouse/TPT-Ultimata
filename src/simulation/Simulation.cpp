@@ -2420,7 +2420,7 @@ void Simulation::init_can_move()
 		 || destinationType == PT_CLNE || destinationType == PT_PCLN || destinationType == PT_BCLN || destinationType == PT_PBCN
 		 || destinationType == PT_WATR || destinationType == PT_DSTW || destinationType == PT_SLTW || destinationType == PT_GLOW
 		 || destinationType == PT_ISOZ || destinationType == PT_ISZS || destinationType == PT_QRTZ || destinationType == PT_PQRT
-		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5
+		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5 || destinationType == PT_FILL
 		 || destinationType == PT_RDND || destinationType == PT_SWTR)
 			can_move[PT_PHOT][destinationType] = 2;
 		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_VIBR && destinationType != PT_BVBR && destinationType != PT_PRTI && destinationType != PT_PRTO)
@@ -3641,6 +3641,13 @@ void Simulation::UpdateParticles(int start, int end)
 					parts[i].vx += (stasis->vx[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vx) * stasis->strength[y/STASIS_CELL][x/STASIS_CELL];
 					parts[i].vy += (stasis->vy[y / STASIS_CELL][x / STASIS_CELL] - parts[i].vy) * stasis->strength[y/STASIS_CELL][x/STASIS_CELL];
 				}
+			}
+
+			// JCB1, and vehicles cannot be set as a ctype of CLNE
+			if ((t==PT_CLNE || t==PT_PCLN || t==PT_BCLN || t==PT_PBCN || t==PT_SNOW || t==PT_LAVA || t==PT_ICEI
+				|| t==PT_VIRS || t==PT_VRSS || t==PT_VRSG) &&
+				(parts[i].ctype == PT_JCB1 || elements[parts[i].ctype].Properties & PROP_VEHICLE)) {
+				parts[i].ctype = PT_NONE;
 			}
 
 			if (elements[t].Diffusion)//the random diffusion that gasses have
@@ -4944,7 +4951,7 @@ void Simulation::RecalcFreeParticles(bool do_life_dec)
 					if (!pmap[y][x] || (t!=PT_INVIS && t!= PT_FILT))
 						pmap[y][x] = PMAP(i, t);
 					// (there are a few exceptions, including energy particles - currently no limit on stacking those)
-					if (t!=PT_THDR && t!=PT_EMBR && t!=PT_FIGH && t!=PT_PLSM)
+					if (t!=PT_THDR && t!=PT_EMBR && t!=PT_FIGH && t!=PT_PLSM && t != PT_FILL)
 						pmap_count[y][x]++;
 				}
 				inBounds = true;

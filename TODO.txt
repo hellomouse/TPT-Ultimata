@@ -90,6 +90,11 @@ quick options
 - magnetic 
 - rulers
 
+
+
+measuring tool to show line and distance and coordinates
+
+
 left column:
 - popup for fps adjustmenet
      - fast forward and slowdown options
@@ -101,6 +106,7 @@ left column:
 TODO:
 2. news button
 3. bug report button
+3.5 options menu
 4. Platform::OpenURI(ByteString::Build(SCHEME "powdertoy.co.uk/Discussions/Thread/View.html?Thread=", str.Substr(3, si.first - 3).ToUtf8()));
 
 
@@ -128,10 +134,6 @@ code fixes:
 
 
 
-side menu for options reee
-
-
-
 
 GameView:283 - tag buton
 GameView:638 - Sidem enu buttons
@@ -142,9 +144,6 @@ GmaeModel: 252 - build quick menu
 gui/options/OptionsView - settings pael
 
 
-
-
-measuring tool to show line and distance and coordinates
 
 
 ERR element - ERROR and destroys stuff

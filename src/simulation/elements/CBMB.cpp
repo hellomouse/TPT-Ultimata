@@ -84,7 +84,8 @@ int Element_CBMB::update(UPDATE_FUNC_ARGS) {
 						continue;
 					if (TYP(r)!=PT_BOMB &&
 					    TYP(r)!=PT_CLNE && TYP(r)!=PT_PCLN &&
-					    TYP(r)!=PT_DMND && TYP(r)!=PT_CBMB) {
+					    TYP(r)!=PT_DMND && TYP(r)!=PT_CBMB &&
+						TYP(r)!=PT_FILL) {
 						parts[i].tmp2 = 250;
 						break;
 					}

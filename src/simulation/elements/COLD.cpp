@@ -55,11 +55,11 @@ int Element_COLD::update(UPDATE_FUNC_ARGS) {
 			if (!r) r = sim->photons[y + ry][x + rx];
 			if (!r) continue;
 
-			if (TYP(r) != PT_COLD && parts[i].temp < 20.0f)
-				parts[ID(r)].temp -= 5.0f;
+			if (TYP(r) != PT_COLD && TYP(r) != PT_TPRS)
+				parts[ID(r)].temp -= 25.0f;
 
 			// Put out fires
-			if (TYP(r) == PT_FIRE || TYP(r) == PT_PLSM){
+			if (TYP(r) == PT_FIRE || TYP(r) == PT_PLSM || TYP(r) == PT_DFLM){
 				sim->kill_part(ID(r));
 				if (RNG::Ref().gen() % 100 == 0) {
 					sim->kill_part(i);

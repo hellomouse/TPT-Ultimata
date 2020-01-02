@@ -41,7 +41,7 @@ int Element_ION::update(UPDATE_FUNC_ARGS) {
 				if (!r) continue;
 
 				// Decohere when touching other particles
-				if (parts[ID(r)].type != PT_QLOG && parts[ID(r)].type != PT_ION) {
+				if (TYP(r) != PT_QLOG && TYP(r) != PT_ION && TYP(r) != PT_FILL) {
 					// Collision, reverse other particle velocity
 					// Yes this violates conservation of momentum
 					parts[i].vx = parts[ID(r)].vx;
