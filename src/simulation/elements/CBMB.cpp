@@ -53,10 +53,15 @@ void Element_CBMB::time_dilation(Simulation *sim, int i, int x, int y, int radiu
 	y = y / CELL;
 
 	for (int dx = -radius; dx <= radius; ++dx) 
-		for (int dy = -radius; dy <= radius; ++dy) 
-			if (x + dx >= 0 && x + dx < XRES / CELL && y + dy >= 0 && y + dy < YRES / CELL) {
-				sim->time_dilation[y + dy][x + dx] = val * (1 - (abs(dx) + abs(dy)) / (radius + radius));
+		for (int dy = -radius; dy <= radius; ++dy) {
+			float r = sqrtf(dx * dx + dy * dy);
+			if (r <= radius &&
+					x + dx >= 0 && x + dx < XRES / CELL && y + dy >= 0 && y + dy < YRES / CELL) {
+				float target = val * (1 - r / radius);
+				if (fabs(target) > fabs(sim->time_dilation[y + dy][x + dx]))
+					sim->time_dilation[y + dy][x + dx] = target;
 			}
+		}
 }
 
 //#TPT-Directive ElementHeader Element_CBMB static int update(UPDATE_FUNC_ARGS)

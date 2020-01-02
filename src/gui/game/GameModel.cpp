@@ -249,6 +249,7 @@ void GameModel::BuildQuickOptionMenu(GameController * controller)
 	quickOptions.push_back(new NGravityOption(this));
 	quickOptions.push_back(new AHeatOption(this));
 	quickOptions.push_back(new ConsoleShowOption(this, controller));
+	quickOptions.push_back(new TimeDilationOption(this));
 
 	notifyQuickOptionsChanged();
 	UpdateQuickOptions();
@@ -1037,6 +1038,20 @@ void GameModel::ShowGravityGrid(bool showGrid)
 bool GameModel::GetGravityGrid()
 {
 	return ren->gravityFieldEnabled;
+}
+
+void GameModel::ShowTimeDilation(bool show)
+{
+	ren->timeDilationFieldEnabled = show;
+	if (show)
+		SetInfoTip("Draw Time Dilation: On");
+	else
+		SetInfoTip("Draw Time Dilation: Off");
+}
+
+bool GameModel::GetTimeDilation()
+{
+	return ren->timeDilationFieldEnabled;
 }
 
 void GameModel::FrameStep(int frames)
