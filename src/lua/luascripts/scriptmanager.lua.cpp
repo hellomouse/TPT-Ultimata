@@ -15,7 +15,7 @@ void luaopen_scriptmanager(lua_State *l)
 #else
 	unsigned int size = 0;
 	const char* data = NULL;
-	Platform::LoadFileInResource(IDI_scriptmanager, LUASCRIPT, size, data);
+	Platform::LoadFileInResource(IDI_SCRIPTMANAGER, LUASCRIPT, size, data);
 	char *buffer = new char[size+1];
 	::memcpy(buffer, data, size);
 	buffer[size] = 0;

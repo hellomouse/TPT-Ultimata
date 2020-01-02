@@ -688,6 +688,7 @@ int Simulation::flood_prop(int x, int y, size_t propoffset, PropertyValue propva
 SimulationSample Simulation::GetSample(int x, int y)
 {
 	SimulationSample sample;
+	sample.frames = timer;
 	sample.PositionX = x;
 	sample.PositionY = y;
 	if (x >= 0 && x < XRES && y >= 0 && y < YRES)
