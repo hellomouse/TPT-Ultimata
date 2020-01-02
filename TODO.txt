@@ -81,10 +81,6 @@ moving solid tool, solid -> moving solid
 (pauses sim)
 
 
-chronodisplay 
-vstasis display
-
-background element
 
 
 
@@ -106,6 +102,16 @@ left column:
      - fast forward and slowdown options
      - set fps as number
      - maybe just a label and a + and - button
+     - move to settings menu
+
+
+TODO:
+2. news button
+3. bug report button
+
+
+
+Bullet - https://github.com/RCAProduction/The-Alliance-Toy/commit/40bc8704aaa0e0b93a6322398a5e4ce2b2d8cf2f
 
 
 code fixes:
@@ -129,13 +135,8 @@ code fixes:
 
 side menu for options reee
 
-bug report button
-
-news popup
 
 
-
-font editor: ./font64
 
 GameView:283 - tag buton
 GameView:638 - Sidem enu buttons

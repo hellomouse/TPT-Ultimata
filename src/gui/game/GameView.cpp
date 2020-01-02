@@ -671,7 +671,7 @@ void GameView::NotifyMenuListChanged(GameModel * sender) {
 		FPSSettings(GameView *_v) { v = _v; }
 		void ActionCallback(ui::Button *sender) { v->fpsSettingsPanelOpen = !v->fpsSettingsPanelOpen;; }
 	};
-	ui::Button *FPSButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH - 16 * 19), ui::Point(15, 47), "F", "FPS Info");
+	ui::Button *FPSButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH - 16 * 19), ui::Point(15, 47), "P", "Performance Graph");
 	FPSButton->SetActionCallback(new FPSSettings(this));
 	AddComponent(FPSButton);
 	menuButtons.push_back(FPSButton);
@@ -2661,7 +2661,7 @@ void GameView::OnDraw()
 		int graph_height = 50;
 		int graph_padding = 8;
 		int chunkw = (FPSWINDOWW - graph_padding * 2) / fps_size;
-		int liney1, liney2;
+		int liney1, liney2, py1 = -1, py2 = -1;
 
 		// Top and bottom basis line
 		g->draw_line(fpsx + graph_padding, fpsy + graph_padding, fpsx + FPSWINDOWW - graph_padding, fpsy + graph_padding, 
@@ -2673,13 +2673,19 @@ void GameView::OnDraw()
 		for (unsigned int i = 0; i < fps_size; ++i) {
 			liney1 = (1.0f - fps_history[i] / ui::Engine::Ref().FpsLimit) * graph_height + fpsy + graph_padding;
 			liney2 = (1.0f - (float)part_history[i] / (NPART)) * graph_height + fpsy + graph_padding;
+
+			if (py1 < 0) py1 = liney1;
+			if (py2 < 0) py2 = liney2;
+
 			if (liney2 < fpsy + graph_padding)
 				liney2 = fpsy + graph_padding;
 
-			g->draw_line(fpsx + graph_padding + chunkw * i, liney1, fpsx + graph_padding + chunkw * (i + 1), liney1, 255, 255, 0, 235);
-			g->draw_line(fpsx + graph_padding + chunkw * i, liney2, fpsx + graph_padding + chunkw * (i + 1), liney2, 0, 100, 255, 235);
+			g->draw_line(fpsx + graph_padding + chunkw * i, py1, fpsx + graph_padding + chunkw * (i + 1), liney1, 255, 255, 0, 235);
+			g->draw_line(fpsx + graph_padding + chunkw * i, py2, fpsx + graph_padding + chunkw * (i + 1), liney2, 0, 100, 255, 235);
 			// g->fillrect(fpsx + graph_padding + chunkw * i, liney, chunkw, (fps_history[i] / ui::Engine::Ref().FpsLimit) * graph_height,
 			// 	255, 255, 0, 205);
+			py1 = liney1;
+			py2 = liney2;
 		}
 
 		g->drawtext(fpsx + graph_padding, fpsy + graph_height + 2 * graph_padding, "Target FPS", 255, 0, 0, 255);

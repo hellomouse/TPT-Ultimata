@@ -2394,6 +2394,8 @@ void Simulation::init_can_move()
 		can_move[movingType][PT_SOIL] = 3;
 		//TRBN invisible to all
 		can_move[movingType][PT_TRBN] = 2;
+		// FILL invisible to all
+		can_move[movingType][PT_FILL] = 2;
 		
 		//Energy particles move through VIBR and BVBR, so it can absorb them
 		if (elements[movingType].Properties & TYPE_ENERGY)
