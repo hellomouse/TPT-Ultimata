@@ -55,13 +55,6 @@ use RNG::Ref()
 
 experiemntal: dynamic light field
 
-config tool 
-     https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
-
-
-
-text plotting tool
-
 sound waves
 - sonic weapons finally :D
 
@@ -79,6 +72,14 @@ a realistic plant that makes SUGR from light
 
 moving solid tool, solid -> moving solid 
 (pauses sim)
+
+
+config tool 
+     https://github.com/The-Powder-Toy/The-Powder-Toy/pull/589/commits
+
+
+
+text plotting tool
 
 
 
@@ -100,10 +101,12 @@ left column:
 TODO:
 2. news button
 3. bug report button
+4. Platform::OpenURI(ByteString::Build(SCHEME "powdertoy.co.uk/Discussions/Thread/View.html?Thread=", str.Substr(3, si.first - 3).ToUtf8()));
 
 
 
 Bullet - https://github.com/RCAProduction/The-Alliance-Toy/commit/40bc8704aaa0e0b93a6322398a5e4ce2b2d8cf2f
+
 
 
 code fixes:
