@@ -84,11 +84,6 @@ guide on adding new render modes
 quick options
 - electro
 - magnetic 
-- rulers
-
-
-
-measuring tool to show line and distance and coordinates
 
 
 breakpoint element
