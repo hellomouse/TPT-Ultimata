@@ -30,7 +30,7 @@ Element_SFLD::Element_SFLD()
 
 	DefaultProperties.temp = 20.0f;
 	HeatConduct = 255;
-	Description = "Superfluid neon.";
+	Description = "Superfluid neon. Likes to flow along surfaces.";
 
 	Properties = TYPE_LIQUID;
 

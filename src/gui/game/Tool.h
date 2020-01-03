@@ -64,7 +64,7 @@ class TextTool: public Tool {
 public:
 	GameModel * gameModel;
 	TextTool(GameModel *model):
-	Tool(0, "TEXT", "Text tool. Click on a spot to define the top left corner for text.", 0, 0, 0, "DEFAULT_UI_TEXT", TextTool::GetIcon),
+	Tool(0, "TEXT", "Text tool. Click on a spot to place text, you can drag the marker before placing.", 0, 0, 0, "DEFAULT_UI_TEXT", TextTool::GetIcon),
 	gameModel(model) {
 	}
 	static VideoBuffer * GetIcon(int toolID, int width, int height);

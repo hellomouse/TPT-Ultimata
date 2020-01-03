@@ -129,7 +129,6 @@ button menu sometimes dark
 MVSD ignore FILL?
 - add to wiki, along with pSTN
 
-add desc to SFLD and update wiki
 
 perln noise
 
