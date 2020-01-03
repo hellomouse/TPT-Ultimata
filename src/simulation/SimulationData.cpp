@@ -156,7 +156,8 @@ std::vector<menu_section> LoadMenus()
 		{0xE067, String("Favorites"), 0, 1},
 
 		// Column 1 (left).
-		// NOTE: counts up backwards, so Deco is bottom
+		{0xE064, String("Settings"), 0, 1},
+		{0xE064, String("Art tools"), 0, 1},
 		{0xE064, String("Decoration tools"), 0, 1},
 		{0xE080, String("Cracker!"), 0, 0}};
 }

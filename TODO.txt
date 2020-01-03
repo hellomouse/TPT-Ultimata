@@ -95,6 +95,8 @@ quick options
 measuring tool to show line and distance and coordinates
 
 
+breakpoint element
+
 left column:
 - popup for fps adjustmenet
      - fast forward and slowdown options
@@ -103,9 +105,46 @@ left column:
      - move to settings menu
 
 
+
+sparkling water, actually made of diamond
+
+polish, polishes metal?
+
+potato
+
+nuclear stuff
+
+noise deco tool
+
+
+
+
+auto hid hud when near top opton
+show stacked particles in hud option
+
+Merge with offical TPT
+
+button menu sometimes dark
+
+MVSD ignore FILL?
+- add to wiki, along with pSTN
+
+add desc to SFLD and update wiki
+
+perln noise
+
 TODO:
 2. news button
 3. bug report button
+
+
+3.2 ruler tool - do not presist
+-- move on to emag
+
+https://starcatcher.us/scripts?view=47
+
+
+3.4 menu for art tools
 3.5 options menu
 4. Platform::OpenURI(ByteString::Build(SCHEME "powdertoy.co.uk/Discussions/Thread/View.html?Thread=", str.Substr(3, si.first - 3).ToUtf8()));
 

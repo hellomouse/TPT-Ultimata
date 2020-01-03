@@ -356,6 +356,7 @@ void GameModel::BuildMenus()
 	menuList[SC_TOOL]->AddTool(new PropertyTool());
 	menuList[SC_TOOL]->AddTool(new SignTool(this));
 	menuList[SC_TOOL]->AddTool(new SampleTool(this));
+	menuList[SC_TOOL]->AddTool(new TextTool(this));
 
 	//Add decoration tools to menu
 	menuList[SC_DECO]->AddTool(new DecorationTool(ren, DECO_ADD, "ADD", "Colour blending: Add.", 0, 0, 0, "DEFAULT_DECOR_ADD"));

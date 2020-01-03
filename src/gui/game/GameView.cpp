@@ -502,7 +502,7 @@ public:
 	MenuAction(GameView * _v, int menuID_) {
 		v = _v;
 		menuID = menuID_;
-		 if (menuID == SC_DECO)
+		 if (menuID == SC_DECO || menuID == SC_SETTINGS || menuID == SC_ART)
 			needsClick = true;
 		else
 			needsClick = false;
@@ -658,7 +658,7 @@ void GameView::NotifyMenuListChanged(GameModel * sender) {
 		Respark(GameView *_v) { v = _v; }
 		void ActionCallback(ui::Button *sender) { v->c->ResetSpark(); }
 	};
-	ui::Button *resetSparkButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH - 16 * 7), ui::Point(15, 15), "", "Reset Spark");
+	ui::Button *resetSparkButton = new ui::Button(ui::Point(WINDOWW - 32, WINDOWH - 16 * 11), ui::Point(15, 15), "", "Reset Spark");
 	resetSparkButton->SetIcon(IconReload);
 	resetSparkButton->SetActionCallback(new Respark(this));
 	AddComponent(resetSparkButton);
@@ -680,7 +680,7 @@ void GameView::NotifyMenuListChanged(GameModel * sender) {
 	std::vector<Menu*> menuList = sender->GetMenuList();
 	for (int i = (int)menuList.size()-1; i >= 0; i--) {
 		// Move to right column now
-		if (i == (int)menuList.size()-2) {
+		if (i == (int)menuList.size()-4) {
 			currentY = WINDOWH - 48; // 1 button above, to leave room for menu above
 			currentX += 16;
 		}
@@ -2641,6 +2641,12 @@ void GameView::OnDraw()
 	if (fpsSettingsPanelOpen) {
 		int fpsx = WINDOWW - 33 - FPSWINDOWW, fpsy = WINDOWH - 16 * 19;
 		g->fillrect(fpsx, fpsy, FPSWINDOWW, FPSWINDOWH, 0, 0, 0, 210);
+
+		// Border of the little rect
+		g->draw_line(fpsx, fpsy, fpsx + FPSWINDOWW, fpsy, 255, 255, 255, 50);
+		g->draw_line(fpsx, fpsy + FPSWINDOWH, fpsx + FPSWINDOWW, fpsy + FPSWINDOWH, 255, 255, 255, 50);
+		g->draw_line(fpsx, fpsy, fpsx, fpsy + FPSWINDOWH, 255, 255, 255, 50);
+		g->draw_line(fpsx + FPSWINDOWW - 2, fpsy, fpsx + FPSWINDOWW - 2, fpsy + FPSWINDOWH, 255, 255, 255, 50);
 
 		// Update fps gauge every 100 ms
 		if (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - time_last_fps_measurement).count()

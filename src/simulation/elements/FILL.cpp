@@ -28,7 +28,7 @@ Element_FILL::Element_FILL()
 	Weight = -1;
 
 	HeatConduct = 0;
-	Description = "Filler. Does not interact with elements, can be used for backgrounds.";
+	Description = "Filler. Does not interact with most elements, can be used for backgrounds.";
 
 	Properties = TYPE_SOLID;
 
